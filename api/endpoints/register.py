@@ -2,6 +2,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 
+from api import gen_token
+from models import User
+
 from sms import send_sms, generate_verification_code
 from memcached import mc
 
@@ -50,13 +53,15 @@ def verify_code(register_verify_code: RegisterVerifyCode):
     phone_number = register_verify_code.phone_number
     code = register_verify_code.code
     origin_code = mc.get(phone_number, default='')
-    mc.delete(phone_number)
+    
 
     if origin_code != code:
         raise HTTPException(status_code=404, detail="code error")
-
+    print('phone_number = ', phone_number)
     #TODO 创建用户
+    user = User.create(phone_number)
 
+    mc.delete(phone_number)
     return {
-        'token': '112312323231231232frfr'
+        'token': gen_token(phone_number)
     }

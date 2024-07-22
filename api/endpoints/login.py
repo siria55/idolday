@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 
+from api import gen_token
 from sms import send_sms, generate_verification_code
 from memcached import mc
 
@@ -56,7 +57,7 @@ def login(login: Login):
     print('password:', password)
     # login
     return {
-        'token': '112312323231231232frfr'
+        'token': gen_token()
     }
 
 
@@ -88,5 +89,5 @@ def login_verify_code(login_verify_code: LoginVerifyCode):
 
 
     return {
-        'token': '112312323231231232frfr'
+        'token': gen_token()
     }
