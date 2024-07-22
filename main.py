@@ -22,6 +22,10 @@ def get_current_user(token: str = Header(...)):  # 使用Header依赖提取token
     return token  # 实际场景中这里可能返回解析token得到的用户信息
 
 
+class User(BaseModel):
+    nickname: str
+    phone_number: str
+
 class RegisterSendCode(BaseModel):
     phone_number: str
 
@@ -122,13 +126,17 @@ def register_verify_code(register_verify_code: RegisterVerifyCode):
     }
 
 @app.get('/api/v1/user-info')
-def user_info(token: str = Depends(get_current_user)):
+def user_info(token: str = Depends(get_current_user)) -> User:
     """
     获取用户基础信息
     """
+    return {
+        'phone_number': '12312312311',
+        'nickname': 'wwwsss',
+    }
     
 @app.post('/api/v1/user-info')
-def user_info(user_info: UserInfo, token: str = Depends(get_current_user)):
+def user_info(user_info: UserInfo, token: str = Depends(get_current_user)) -> User:
     """
     修改用户信息
     """
@@ -140,7 +148,8 @@ def user_info(user_info: UserInfo, token: str = Depends(get_current_user)):
     print('nickname:', nickname)
     # complete register
     return {
-        'token': '112312323231231232frfr'
+        'phone_number': '12312312311',
+        'nickname': 'wwwsss',
     }
 
 @app.post('/api/v1/login')
