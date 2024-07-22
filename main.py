@@ -121,6 +121,12 @@ def register_verify_code(register_verify_code: RegisterVerifyCode):
         'token': '112312323231231232frfr'
     }
 
+@app.get('/api/v1/user-info')
+def user_info(token: str = Depends(get_current_user)):
+    """
+    获取用户基础信息
+    """
+    
 @app.post('/api/v1/user-info')
 def user_info(user_info: UserInfo, token: str = Depends(get_current_user)):
     """
@@ -175,13 +181,3 @@ def login_verify_code(login_verify_code: LoginVerifyCode):
     return {
         'token': '112312323231231232frfr'
     }
-
-
-
-@app.get("/")
-def read_root(db: Session = Depends(get_db)):
-    # db = get_db()
-    db_user = db.query(User).filter(User.id == 1).first()
-    # res = get_user(user_id=1)
-    print(db_user.email)
-    return {"Hello": "World"}
