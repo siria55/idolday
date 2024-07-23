@@ -15,14 +15,14 @@ class Login(BaseModel):
 
     @field_validator('phone_number')
     def validate_phone_number(cls, v):
-        if len(v) != 11:  # 假设我们需要11位数的手机号码
-            raise ValueError('Phone number must be 11 digits')
+        if len(v) != 11:
+            raise ValueError('请输入正确的手机号')
         return v
 
     @field_validator('password')
     def validate_password(cls, v):
-        if len(v) < 6:  # 假设我们需要6位数的密码
-            raise ValueError('Password must be at least 6 digits')
+        if len(v) < 6:
+            raise ValueError('密码至少 6 位')
         return v
 
 class LoginSendCode(BaseModel):
@@ -30,8 +30,8 @@ class LoginSendCode(BaseModel):
 
     @field_validator('phone_number')
     def validate_phone_number(cls, v):
-        if len(v) != 11:  # 假设我们需要11位数的手机号码
-            raise ValueError('Phone number must be 11 digits')
+        if len(v) != 11:
+            raise ValueError('请输入正确的手机号')
         return v
 
 
@@ -41,8 +41,8 @@ class LoginVerifyCode(BaseModel):
 
     @field_validator('phone_number')
     def validate_phone_number(cls, v):
-        if len(v) != 11:  # 假设我们需要11位数的手机号码
-            raise ValueError('Phone number must be 11 digits')
+        if len(v) != 11:
+            raise ValueError('请输入正确的手机号')
         return v
 
 
@@ -67,11 +67,9 @@ def login_send_code(login_send_code: LoginSendCode):
     手机验证码登录，向这个手机号发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """
     phone_number = login_send_code.phone_number
-    code = login_send_code()
-    code = '1212'
+    code = generate_verification_code()
     send_sms(phone_number, code)
     mc.set(phone_number, code, time=60 * 10)
-    return {}
 
 
 @router.post('/verify-code')
@@ -82,12 +80,10 @@ def login_verify_code(login_verify_code: LoginVerifyCode):
     phone_number = login_verify_code.phone_number
     code = login_verify_code.code
     origin_code = mc.get(phone_number, default='')
-    mc.delete(phone_number)
-
+    print(f'origin_code = {origin_code}')
     if origin_code != code:
-        raise HTTPException(status_code=404, detail="code error")
-
-
+        raise HTTPException(status_code=400, detail="验证码错误")
+    mc.delete(phone_number)
     return {
-        'token': gen_token()
+        'token': gen_token(phone_number)
     }

@@ -53,7 +53,3 @@ def user_info(user_info: UserInfo, token: str = Depends(get_current_user)) -> Us
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
     user.update(nickname=nickname, password_hash=password)
-    return {
-        'phone_number': user.phone_number,
-        'nickname': user.nickname or user.phone_number,
-    }

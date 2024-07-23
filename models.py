@@ -32,14 +32,16 @@ class User(Base):
 
     def update(self, nickname=None, password_hash=None):
         session = SessionLocal()
+        self = session.merge(self)
         if nickname:
             self.nickname = nickname
         if password_hash:
             self.password_hash = password_hash
         print(f'self.nickname = {self.nickname}')
-        session.add(self)
+        # session.add(self)
         session.commit()
+        session.refresh(self)
         session.close()
         print('after commit')
             
-        return self
+        # return self
