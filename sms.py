@@ -11,8 +11,8 @@ from alibabacloud_dysmsapi20170525 import models as dysmsapi_20170525_models
 from alibabacloud_tea_util import models as util_models
 from alibabacloud_tea_util.client import Client as UtilClient
 
-ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tDyTzsSSAoxFnJCYjT8'
-ALIBABA_CLOUD_ACCESS_KEY_SECRET = '5apTh8RqiYHfaeywrsoPQatJttFk6A'
+ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tLQxLqhF7ywAw797nwj'
+ALIBABA_CLOUD_ACCESS_KEY_SECRET = 'XDS3TwzljwoCEdwf6AqkP9GiXe4cY5'
 
 
 def generate_verification_code(length=4):
@@ -41,15 +41,15 @@ def create_client() -> Dysmsapi20170525Client:
 
 def send_sms(phone_number, code):
     client = create_client()
+    code_str = '{"code":"%s"}' % code
     send_sms_request = dysmsapi_20170525_models.SendSmsRequest(
         sign_name='北京图爱网络技术',
         phone_numbers=phone_number,
         template_code='SMS_302125817',
-        template_param='{"code":"1234"}'
+        template_param=code_str
     )
     try:
-        # 复制代码运行请自行打印 API 的返回值
-        client.send_sms_with_options(send_sms_request, util_models.RuntimeOptions())
+        res = client.send_sms_with_options(send_sms_request, util_models.RuntimeOptions())
     except Exception as error:
         # 此处仅做打印展示，请谨慎对待异常处理，在工程项目中切勿直接忽略异常。
         # 错误 message

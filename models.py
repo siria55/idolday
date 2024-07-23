@@ -14,12 +14,32 @@ class User(Base):
     nickname = Column(String, default='')
     password_hash = Column(String, default='')
     created_at = Column(DateTime, default=datetime.now)
+    
+    @classmethod
+    def get(cls, phone_number):
+        session = SessionLocal()
+        user = session.query(cls).filter(cls.phone_number == phone_number).first()
+        session.close()
+        return user
 
     @classmethod
     def create(cls, phone_number, nickname='', password_hash=''):
         user = cls(phone_number=phone_number, nickname=nickname, password_hash=password_hash)
+        with SessionLocal() as session:
+            session.add(user)
+            session.commit()
+        return user
+
+    def update(self, nickname=None, password_hash=None):
         session = SessionLocal()
-        session.add(user)
+        if nickname:
+            self.nickname = nickname
+        if password_hash:
+            self.password_hash = password_hash
+        print(f'self.nickname = {self.nickname}')
+        session.add(self)
         session.commit()
         session.close()
-        return user
+        print('after commit')
+            
+        return self

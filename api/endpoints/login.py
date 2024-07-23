@@ -70,7 +70,7 @@ def login_send_code(login_send_code: LoginSendCode):
     code = login_send_code()
     code = '1212'
     send_sms(phone_number, code)
-    mc.set(phone_number, code, time=60)
+    mc.set(phone_number, code, time=60 * 10)
     return {}
 
 

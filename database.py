@@ -8,7 +8,7 @@ SQLALCHEMY_DATABASE_URL = 'mysql+pymysql://hotdog:TOAItoai1234@rm-2ze8try6287fyk
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(bind=engine)
 
 Base = declarative_base()
 
