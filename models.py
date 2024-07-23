@@ -5,6 +5,16 @@ from sqlalchemy.orm import relationship
 
 from database import Base, SessionLocal
 
+import hashlib
+
+
+def hash_password(password):
+    # 使用SHA-256算法进行加密
+    sha256 = hashlib.sha256()
+    sha256.update(password.encode('utf-8'))
+    encrypted_password = sha256.hexdigest()
+    return encrypted_password
+
 
 class User(Base):
     __tablename__ = "users"
@@ -30,18 +40,16 @@ class User(Base):
             session.commit()
         return user
 
-    def update(self, nickname=None, password_hash=None):
+    def update(self, nickname=None, password=None):
         session = SessionLocal()
         self = session.merge(self)
         if nickname:
             self.nickname = nickname
-        if password_hash:
-            self.password_hash = password_hash
-        print(f'self.nickname = {self.nickname}')
-        # session.add(self)
+        if password:
+            self.password_hash = hash_password(password)
         session.commit()
         session.refresh(self)
         session.close()
-        print('after commit')
-            
-        # return self
+
+    def verify_password(self, password):
+        return hash_password(password) == self.password_hash

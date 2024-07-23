@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 
 from api import gen_token
+from models import User
 from sms import send_sms, generate_verification_code
 from memcached import mc
 
@@ -53,11 +54,13 @@ def login(login: Login):
     """
     phone_number = login.phone_number
     password = login.password
-    print('phone_number:', phone_number)
-    print('password:', password)
-    # login
+    user = User.get(phone_number)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if not user.verify_password(password):
+        raise HTTPException(status_code=400, detail="密码错误")
     return {
-        'token': gen_token()
+        'token': gen_token(phone_number)
     }
 
 

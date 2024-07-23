@@ -18,6 +18,7 @@ class UserRes(BaseModel):
 class UserInfo(BaseModel):
     password: Optional[str] = None
     nickname: Optional[str] = None
+    password: Optional[str] = None
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -48,8 +49,14 @@ def user_info(user_info: UserInfo, token: str = Depends(get_current_user)) -> Us
     """
     password = user_info.password
     nickname = user_info.nickname
+    password = user_info.password
     phone_number = decode_token(token)
     user = User.get(phone_number)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
-    user.update(nickname=nickname, password_hash=password)
+    user.update(nickname=nickname, password=password)
+    user = User.get(phone_number)
+    return {
+        'phone_number': user.phone_number,
+        'nickname': user.nickname or user.phone_number,
+    }
