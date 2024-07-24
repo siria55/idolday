@@ -32,6 +32,10 @@ class RegisterVerifyCode(BaseModel):
         return v
 
 
+class ResToken(BaseModel):
+    token: str
+
+
 @router.post('/send-code')
 def send_code(register_send_code: RegisterSendCode):
     """
@@ -43,11 +47,10 @@ def send_code(register_send_code: RegisterSendCode):
     code = generate_verification_code()
     send_sms(phone_number, code)
     mc.set(phone_number, code, time=60 * 10)
-    return {}
 
 
 @router.post('/verify-code')
-def verify_code(register_verify_code: RegisterVerifyCode):
+def verify_code(register_verify_code: RegisterVerifyCode) -> ResToken:
     """
     注册，验证验证码。验证成功返回 token
     """

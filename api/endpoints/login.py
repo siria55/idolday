@@ -9,6 +9,9 @@ from memcached import mc
 
 router = APIRouter()
 
+class ResToken(BaseModel):
+    token: str
+
 
 class Login(BaseModel):
     phone_number: str
@@ -48,7 +51,7 @@ class LoginVerifyCode(BaseModel):
 
 
 @router.post('/')
-def login(login: Login):
+def login(login: Login) -> ResToken:
     """
     手机号和密码登录，会返回 token
     """
@@ -76,7 +79,7 @@ def login_send_code(login_send_code: LoginSendCode):
 
 
 @router.post('/verify-code')
-def login_verify_code(login_verify_code: LoginVerifyCode):
+def login_verify_code(login_verify_code: LoginVerifyCode) -> ResToken:
     """
     登录，验证验证码。验证成功返回 token
     """
