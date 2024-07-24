@@ -1,6 +1,7 @@
 
 import os
 import requests
+import time
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
@@ -10,13 +11,12 @@ from typing import Optional
 
 from api import get_current_user, decode_token
 from models import User
-from nlp import chat, history
+from nlp import chat
 
-APPKEY = 'PQXXnL4bPDbRmARV'
+APPKEY_STT = 'PQXXnL4bPDbRmARV'
 TOKEN = '386e1d407b3b4ca08246b6a586d1aff8'
 
-def send_voice_to_nlp(audio_file: UploadFile):
-    url = 'nls-gateway-cn-shanghai.aliyuncs.com/stream/v1/asr'
+APPKEY_TTS = 'd3uUxszmFaXGRnzB'
 
 import wave
 
@@ -38,12 +38,14 @@ def resample_audio(input_path, output_path, new_sample_rate=16000):
 
 router = APIRouter()
 
-class ResTxt(BaseModel):
+class ResTalk(BaseModel):
     origin_text: str
     reply_text: str
+    audio_path: str
 
-@router.post('/voice-from-user')
-async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depends(get_current_user)) -> ResTxt:
+
+@router.post('/talk')
+async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depends(get_current_user)) -> ResTalk:
     """
     获取用户语音输入并返回文本
     """
@@ -70,7 +72,7 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
 
     with open(use_path, mode = 'rb') as f:
         audioContent = f.read() # audio_file.read()
-        host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/asr?appkey=' + APPKEY + '&format=opus&sample_rate=16000'
+        host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/asr?appkey=' + APPKEY_STT + '&format=opus&sample_rate=16000'
         # 设置HTTPS请求头部
         httpHeaders = {
             'X-NLS-Token': TOKEN,
@@ -82,14 +84,37 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
         res = res.json()
         origin_text = res.get('result', '')
         print(origin_text)
-    reply_text = chat(origin_text, history)
-    # with wave.open(file_location, mode='rb') as f:
-    #     print(f.getparams())
-        # return JSONResponse(status_code=200, content={"message": "File uploaded successfully.", "file_path": file_location, "metadata": metadata.dict()})
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
 
+
+    reply_text = chat(origin_text, phone_number)
+
+    # TTS
+    host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/tts'
+    httpHeaders = {
+        'X-NLS-Token': TOKEN,
+        'Content-type': 'application/json',
+        'Content-Length': str(len(audioContent)),
+        'Host': 'nls-gateway-cn-beijing-internal.aliyuncs.com'
+        }
+    body = {
+        "appkey":APPKEY_TTS,
+        "text":reply_text,
+        "token":TOKEN,
+        "format":"mp3"
+    }
+    res = requests.post(host, headers = httpHeaders, json = body)
+    print('Response status and response reason:')
+    contentType = res.headers['Content-Type']
+    audio_path = f"audio_res/{user.phone_number}_{int(time.time())}.mp3"
+    body = res.content
+    if 'audio/mpeg' == contentType :
+        with open(audio_path, mode='wb') as f:
+            f.write(body)
+        print('The GET request succeed!')
+    else :
+        print('The GET request failed: ' + str(body))
     return {
         'origin_text': origin_text,
-        'reply_text': reply_text
+        'reply_text': reply_text,
+        'audio_path': '/download/' + audio_path
     }
