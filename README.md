@@ -32,3 +32,7 @@ sudo systemctl restart fastapi
 moonshot api key
 sk-vJWtg3lpODHLl7niiRBGSpGmPTOEWzdtpVewW9flswfVQDYv # 个人号
 sk-gu1UoYqojz3IwJTvB4Fqc5zpcg2mKt0dCyH9xuLAnll8UeL9 # 法人号
+
+依赖的系统包：
+ffmpeg
+memcached

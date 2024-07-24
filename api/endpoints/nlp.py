@@ -3,6 +3,8 @@ import os
 import requests
 import time
 
+from pydub import AudioSegment
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 
@@ -12,6 +14,8 @@ from typing import Optional
 from api import get_current_user, decode_token
 from models import User
 from nlp import chat
+
+
 
 APPKEY_STT = 'PQXXnL4bPDbRmARV'
 TOKEN = '386e1d407b3b4ca08246b6a586d1aff8'
@@ -100,12 +104,13 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
         "appkey":APPKEY_TTS,
         "text":reply_text,
         "token":TOKEN,
-        "format":"mp3"
+        "format":"wav"
     }
     res = requests.post(host, headers = httpHeaders, json = body)
     print('Response status and response reason:')
     contentType = res.headers['Content-Type']
-    audio_path = f"audio_res/{user.phone_number}_{int(time.time())}.mp3"
+    audio_path = f"audio_res/{user.phone_number}_{int(time.time())}.wav"
+
     body = res.content
     if 'audio/mpeg' == contentType :
         with open(audio_path, mode='wb') as f:
@@ -113,8 +118,13 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
         print('The GET request succeed!')
     else :
         print('The GET request failed: ' + str(body))
+        
+    wav_audio = AudioSegment.from_wav(audio_path)
+    opus_path = audio_path.split('.')[0] + '.opus'
+    wav_audio.export(opus_path, format="opus")
+
     return {
         'origin_text': origin_text,
         'reply_text': reply_text,
-        'audio_path': '/download/' + audio_path
+        'audio_path': '/download/' + opus_path
     }
