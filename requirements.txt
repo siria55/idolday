@@ -25,6 +25,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 cryptography==43.0.0
 decorator==5.1.1
+distro==1.9.0
 dnspython==2.6.1
 email_validator==2.2.0
 exceptiongroup==1.2.2
@@ -54,6 +55,7 @@ msgpack==1.0.8
 multidict==6.0.5
 numba==0.60.0
 numpy==2.0.1
+openai==1.37.0
 packaging==24.1
 parso==0.8.4
 pexpect==4.9.0
@@ -85,6 +87,7 @@ SQLAlchemy==2.0.31
 stack-data==0.6.3
 starlette==0.37.2
 threadpoolctl==3.5.0
+tqdm==4.66.4
 traitlets==5.14.3
 typer==0.12.3
 typing_extensions==4.12.2

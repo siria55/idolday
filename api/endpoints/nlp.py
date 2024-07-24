@@ -10,6 +10,7 @@ from typing import Optional
 
 from api import get_current_user, decode_token
 from models import User
+from nlp import chat, history
 
 APPKEY = 'PQXXnL4bPDbRmARV'
 TOKEN = '386e1d407b3b4ca08246b6a586d1aff8'
@@ -38,7 +39,8 @@ def resample_audio(input_path, output_path, new_sample_rate=16000):
 router = APIRouter()
 
 class ResTxt(BaseModel):
-    text: str
+    origin_text: str
+    reply_text: str
 
 @router.post('/voice-from-user')
 async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depends(get_current_user)) -> ResTxt:
@@ -78,15 +80,16 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
             }
         res = requests.post(host, headers = httpHeaders, data = audioContent)
         res = res.json()
-        text = res.get('result', '')
-        print(text)
+        origin_text = res.get('result', '')
+        print(origin_text)
+    reply_text = chat(origin_text, history)
     # with wave.open(file_location, mode='rb') as f:
     #     print(f.getparams())
         # return JSONResponse(status_code=200, content={"message": "File uploaded successfully.", "file_path": file_location, "metadata": metadata.dict()})
     # except Exception as e:
     #     raise HTTPException(status_code=500, detail=str(e))
 
-    res_txt = '123'
     return {
-        'text': text
+        'origin_text': origin_text,
+        'reply_text': reply_text
     }

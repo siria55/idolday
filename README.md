@@ -30,4 +30,5 @@ sudo systemctl enable fastapi
 sudo systemctl restart fastapi
 
 moonshot api key
-sk-vJWtg3lpODHLl7niiRBGSpGmPTOEWzdtpVewW9flswfVQDYv
+sk-vJWtg3lpODHLl7niiRBGSpGmPTOEWzdtpVewW9flswfVQDYv # 个人号
+sk-gu1UoYqojz3IwJTvB4Fqc5zpcg2mKt0dCyH9xuLAnll8UeL9 # 法人号
