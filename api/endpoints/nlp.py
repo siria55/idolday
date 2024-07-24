@@ -68,7 +68,7 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
 
     with open(use_path, mode = 'rb') as f:
         audioContent = f.read() # audio_file.read()
-        host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/asr?appkey=' + APPKEY
+        host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/asr?appkey=' + APPKEY + '&format=opus&sample_rate=16000'
         # 设置HTTPS请求头部
         httpHeaders = {
             'X-NLS-Token': TOKEN,
