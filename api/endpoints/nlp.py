@@ -18,7 +18,7 @@ from nlp import chat
 
 
 APPKEY_STT = 'PQXXnL4bPDbRmARV'
-TOKEN = '386e1d407b3b4ca08246b6a586d1aff8'
+TOKEN = '5e5a16b6fe9f490f8360d1a80f6ed4bd'
 
 APPKEY_TTS = 'd3uUxszmFaXGRnzB'
 
@@ -45,6 +45,7 @@ router = APIRouter()
 class ResTalk(BaseModel):
     origin_text: str
     reply_text: str
+    reply_face_code: str
     audio_path: str
 
 
@@ -89,6 +90,8 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
         origin_text = res.get('result', '')
         print(origin_text)
 
+    if not origin_text:
+        raise HTTPException(status_code=400, detail="无法识别语音")
 
     reply_text = chat(origin_text, phone_number)
 
@@ -126,5 +129,6 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
     return {
         'origin_text': origin_text,
         'reply_text': reply_text,
-        'audio_path': '/download/' + opus_path
+        'reply_face_code': 'SMILE_01',
+        'audio_path': '/download/' + opus_path,
     }
