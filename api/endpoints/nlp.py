@@ -13,7 +13,7 @@ from typing import Optional
 
 from api import get_current_user, decode_token
 from models import User
-from nlp import chat
+from nlp import chat, get_face
 
 
 APPKEY_STT = 'PQXXnL4bPDbRmARV'
@@ -43,7 +43,8 @@ router = APIRouter()
 class ResTalk(BaseModel):
     origin_text: str
     reply_text: str
-    reply_face_code: str
+    reply_face_code_bit: str
+    reply_face_code_car: str
     audio_path: str
 
 
@@ -92,6 +93,8 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
         raise HTTPException(status_code=400, detail="无法识别语音")
 
     reply_text = chat(origin_text, phone_number)
+    faces = get_face(phone_number)
+    print(faces)
 
     # TTS
     host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/tts'
@@ -127,6 +130,7 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
     return {
         'origin_text': origin_text,
         'reply_text': reply_text,
-        'reply_face_code': 'SMILE_01',
+        'reply_face_code_bit': faces['face_code_bit'],
+        'reply_face_code_car': faces['face_code_car'],
         'audio_path': '/download/' + opus_path,
     }
