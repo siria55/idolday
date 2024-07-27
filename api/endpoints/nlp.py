@@ -16,16 +16,14 @@ from models import User
 from nlp import chat
 
 
-
 APPKEY_STT = 'PQXXnL4bPDbRmARV'
-TOKEN = '5e5a16b6fe9f490f8360d1a80f6ed4bd'
-
 APPKEY_TTS = 'd3uUxszmFaXGRnzB'
+TOKEN = '7d5240c6517a45d9802267a110a0f66e'
 
-import wave
 
 import librosa
 import soundfile as sf
+
 
 def resample_audio(input_path, output_path, new_sample_rate=16000):
     # 加载音频文件，librosa会自动将音频转换为浮点数类型（-1.0到1.0之间）
