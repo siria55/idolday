@@ -14,11 +14,10 @@ from typing import Optional
 from api import get_current_user, decode_token
 from models import User
 from nlp import chat, get_face
-
+from memcached import mc
 
 APPKEY_STT = 'PQXXnL4bPDbRmARV'
 APPKEY_TTS = 'd3uUxszmFaXGRnzB'
-TOKEN = '7d5240c6517a45d9802267a110a0f66e'
 
 
 import librosa
@@ -73,25 +72,27 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
     #     if wav_params.framerate not in [16000, 8000]:
     # resample_audio(file_location, output_path)
     # use_path = output_path
-
+    token = mc.get('nls_token', '')
     with open(use_path, mode = 'rb') as f:
         audioContent = f.read() # audio_file.read()
         host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/asr?appkey=' + APPKEY_STT + '&format=opus&sample_rate=16000'
         # 设置HTTPS请求头部
         httpHeaders = {
-            'X-NLS-Token': TOKEN,
+            'X-NLS-Token': token,
             'Content-type': 'application/octet-stream',
             'Content-Length': str(len(audioContent)),
             'Host': 'nls-gateway-cn-beijing-internal.aliyuncs.com'
             }
         res = requests.post(host, headers = httpHeaders, data = audioContent)
         res = res.json()
+        print('res = ', res)
         origin_text = res.get('result', '')
         print(origin_text)
 
     if not origin_text:
         raise HTTPException(status_code=400, detail="无法识别语音")
 
+    # NLP
     reply_text = chat(origin_text, phone_number)
     faces = get_face(phone_number)
     print(faces)
@@ -99,7 +100,7 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
     # TTS
     host = 'http://nls-gateway-cn-beijing-internal.aliyuncs.com/stream/v1/tts'
     httpHeaders = {
-        'X-NLS-Token': TOKEN,
+        'X-NLS-Token': token,
         'Content-type': 'application/json',
         'Content-Length': str(len(audioContent)),
         'Host': 'nls-gateway-cn-beijing-internal.aliyuncs.com'
@@ -107,7 +108,7 @@ async def voice_from_user(audio_file: UploadFile = File(...), token: str = Depen
     body = {
         "appkey":APPKEY_TTS,
         "text":reply_text,
-        "token":TOKEN,
+        "token":token,
         "format":"wav"
     }
     res = requests.post(host, headers = httpHeaders, json = body)
