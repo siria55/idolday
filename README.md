@@ -36,3 +36,7 @@ sk-gu1UoYqojz3IwJTvB4Fqc5zpcg2mKt0dCyH9xuLAnll8UeL9 # 法人号
 依赖的系统包：
 ffmpeg
 memcached
+
+docker 运行
+docker build -t fastapiapp .
+docker run -d --name fastapiapp_container -p 8000:8000 fastapiapp
