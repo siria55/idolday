@@ -58,6 +58,7 @@ numba==0.60.0
 numpy==2.0.1
 openai==1.37.0
 packaging==24.1
+paho-mqtt==2.1.0
 parso==0.8.4
 pexpect==4.9.0
 platformdirs==4.2.2
