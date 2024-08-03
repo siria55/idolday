@@ -16,14 +16,19 @@ ALIBABA_CLOUD_ACCESS_KEY_SECRET = 'XDS3TwzljwoCEdwf6AqkP9GiXe4cY5'
 groupId = 'GID_TOAI'
 
 #MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
-client_id=groupId+'@@@'+'server'
+client_id=groupId+'@@@'+'client'
 topic = 'twowheels'
 #MQTT 接入点域名，实例初始化之后从控制台获取
 brokerUrl="{}.mqtt.aliyuncs.com".format(instanceId)
 
 
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+# client.on_connect = on_connect
+# client.on_message = on_message
 
-# 定义回调函数
+
+
+
 def on_log(client, userdata, level, buf):
     if level == MQTT_LOG_INFO:
         head = 'INFO'
@@ -39,11 +44,8 @@ def on_log(client, userdata, level, buf):
         head = level
     print('%s: %s' % (head, buf))
 def on_connect(client, userdata, flags, rc):
-    # print('client = %s' % client)
-    # print('userdata = %s' % userdata)
-    # print('flags = %s' % flags)
     print('Connected with result code ' + str(rc))
-    client.subscribe(topic, 0)
+    # client.subscribe(topic, 0)
     # for i in range(1, 11):
     #     print(i)
     #     rc = client.publish(topic, str(i), qos=0)
@@ -54,27 +56,28 @@ def on_message(client, userdata, msg):
 def on_disconnect(client, userdata, rc):
     if rc != 0:
         print('Unexpected disconnection %s' % rc)
+        
+        
+        
 
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, protocol=mqtt.MQTTv311, clean_session=True)
-client.on_log = on_log
-client.on_connect = on_connect
-client.on_message = on_message
 
 userName ='Signature'+'|'+ALIBABA_CLOUD_ACCESS_KEY_ID+'|'+instanceId
 password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), client_id.encode(), sha1).digest()).decode()
-userName = 'Signature|LTAI5tLQxLqhF7ywAw797nwj|post-cn-lsk3uo7yv02'
-password = '2t7H13eG6kywjC9fSnuhoDyfvow='
+# userName = 'Signature|LTAI5tLQxLqhF7ywAw797nwj|post-cn-lsk3uo7yv02'
+# password = '2t7H13eG6kywjC9fSnuhoDyfvow='
+
+client.on_log = on_log
+client.on_connect = on_connect
+client.on_message = on_message
+client.on_disconnect = on_disconnect
+
 client.username_pw_set(userName, password)
+
+message = "Temperature: 25°C"
 client.connect(brokerUrl, 1883, 60)
-# # ssl设置，并且port=8883
-# #client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS, ciphers=None)
-# client.connect(brokerUrl, 1883, 60)
-client.loop_forever()
-
-
-
-
-
+client.publish(topic, message)
+client.disconnect()
+print(f"Published message '{message}' to topic '{topic}'")
 
 
 
@@ -84,26 +87,22 @@ client.loop_forever()
 
 import paho.mqtt.client as mqtt
 
-# 定义回调函数
-def on_connect(client, userdata, flags, rc):
-    print(f"Connected with result code {rc}")
-    # 连接后订阅主题
-    client.subscribe("home/livingroom/temperature")
-
-def on_message(client, userdata, msg):
-    print(f"Received message '{msg.payload.decode()}' on topic '{msg.topic}'")
-
-# 创建一个 MQTT 客户端实例
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
-
-# 设置回调函数
-client.on_connect = on_connect
-client.on_message = on_message
-
-# 连接到 MQTT Broker
+# 定义 MQTT Broker 信息
 broker = "mqtt.eclipseprojects.io"  # 公共测试 Broker
 port = 1883
+topic = "home/livingroom/temperature"
+
+# 创建一个 MQTT 客户端实例
+client = mqtt.Client()
+
+# 连接到 MQTT Broker
 client.connect(broker, port, 60)
 
-# 开始阻塞式循环，等待消息
-client.loop_forever()
+# 发布消息
+message = "Temperature: 25°C111"
+client.publish(topic, message)
+
+# 断开连接
+client.disconnect()
+
+print(f"Published message '{message}' to topic '{topic}'")
