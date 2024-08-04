@@ -1,11 +1,12 @@
 from datetime import datetime
+import hashlib
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime
 
 from database import Base, SessionLocal
 
-import hashlib
+from .device import Device, DEVICE_TYPE_MOVING_SPEAKER
+
 
 
 def hash_password(password):
@@ -53,3 +54,10 @@ class User(Base):
 
     def verify_password(self, password):
         return hash_password(password) == self.password_hash
+
+    def bind_device(self, device_id):
+        device = Device(type=DEVICE_TYPE_MOVING_SPEAKER, device_id=device_id, user_id=self.id)
+        with SessionLocal() as session:
+            session.add(device)
+            session.commit()
+        return device

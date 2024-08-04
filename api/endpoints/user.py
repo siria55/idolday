@@ -4,8 +4,8 @@ from pydantic import BaseModel, field_validator
 from typing import Optional
 
 from api import get_current_user, decode_token
-from models import User
-
+from models.user import User
+from models.device import Device
 
 router = APIRouter()
 
@@ -60,3 +60,22 @@ def user_info(user_info: UserInfo, token: str = Depends(get_current_user)) -> Us
         'phone_number': user.phone_number,
         'nickname': user.nickname or user.phone_number,
     }
+
+
+class ReqDeviceBinding(BaseModel):
+    device_id: str
+
+
+@router.post('/device/binding')
+def device_binding(req: ReqDeviceBinding, token: str = Depends(get_current_user)):
+    """
+    绑定设备
+    """
+    phone_number = decode_token(token)
+    user = User.get(phone_number)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    device = Device.get(req.device_id)
+    if device:
+        raise HTTPException(status_code=404, detail="设备已经存在")
+    user.bind_device(req.device_id)

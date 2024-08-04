@@ -12,7 +12,7 @@ from pydantic import BaseModel, field_validator
 from typing import Optional
 
 from api import get_current_user, decode_token
-from models import User
+from models.user import User
 from nlp import chat, get_face
 from memcached import mc
 

@@ -8,6 +8,7 @@ CREATE TABLE users (
 
 CREATE TABLE devices (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    type INT NOT NULL,             -- 设备类型，如移动音响
     device_id VARCHAR(255) NOT NULL UNIQUE,
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

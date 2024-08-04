@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 
 from api import gen_token
-from models import User
+from models.user import User
 from sms import send_sms, generate_verification_code
 from memcached import mc
 
