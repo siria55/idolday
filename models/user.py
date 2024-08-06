@@ -3,7 +3,7 @@ import hashlib
 
 from sqlalchemy import Column, Integer, String, DateTime
 
-from database import Base, SessionLocal
+from database import Base
 
 from .device import Device, DEVICE_TYPE_MOVING_SPEAKER
 
@@ -27,37 +27,38 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now)
     
     @classmethod
-    def get(cls, phone_number):
-        session = SessionLocal()
-        user = session.query(cls).filter(cls.phone_number == phone_number).first()
-        session.close()
+    def get(cls, db, phone_number):
+        user = db.query(cls).filter(cls.phone_number == phone_number).first()
         return user
 
     @classmethod
-    def create(cls, phone_number, nickname='', password_hash=''):
+    def create(cls, db, phone_number, nickname='', password_hash=''):
         user = cls(phone_number=phone_number, nickname=nickname, password_hash=password_hash)
-        with SessionLocal() as session:
-            session.add(user)
-            session.commit()
+        db.add(user)
+        db.commit()
         return user
 
-    def update(self, nickname=None, password=None):
-        session = SessionLocal()
-        self = session.merge(self)
+    def update(self, db, nickname=None, password=None):
+        self = db.merge(self)
         if nickname:
             self.nickname = nickname
         if password:
             self.password_hash = hash_password(password)
-        session.commit()
-        session.refresh(self)
-        session.close()
+        db.commit()
+        db.refresh(self)
 
     def verify_password(self, password):
         return hash_password(password) == self.password_hash
 
-    def bind_device(self, device_id):
+    def bind_device(self, db, device_id):
         device = Device(type=DEVICE_TYPE_MOVING_SPEAKER, device_id=device_id, user_id=self.id)
-        with SessionLocal() as session:
-            session.add(device)
-            session.commit()
+        db.add(device)
+        db.commit()
+        return device
+
+    def unbind_device(self, db, device_id):
+        device = db.query(Device).filter(Device.device_id == device_id).first()
+        if device:
+            db.delete(device)
+            db.commit()
         return device

@@ -1,7 +1,8 @@
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, field_validator
 
+from database import get_db
 from api import gen_token
 from models.user import User
 
@@ -37,12 +38,12 @@ class ResToken(BaseModel):
 
 
 @router.post('/send-code')
-def send_code(register_send_code: RegisterSendCode):
+def send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
     """
     注册，向这个手机号发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """
     phone_number = register_send_code.phone_number
-    if User.get(phone_number) is not None:
+    if User.get(db, phone_number) is not None:
         raise HTTPException(status_code=404, detail="手机号已注册")
     code = generate_verification_code()
     send_sms(phone_number, code)
@@ -50,7 +51,7 @@ def send_code(register_send_code: RegisterSendCode):
 
 
 @router.post('/verify-code')
-def verify_code(register_verify_code: RegisterVerifyCode) -> ResToken:
+def verify_code(register_verify_code: RegisterVerifyCode, db = Depends(get_db)) -> ResToken:
     """
     注册，验证验证码。验证成功返回 token
     """
@@ -60,7 +61,7 @@ def verify_code(register_verify_code: RegisterVerifyCode) -> ResToken:
 
     if origin_code != code:
         raise HTTPException(status_code=404, detail="验证码错误")
-    User.create(phone_number)
+    User.create(db, phone_number)
 
     mc.delete(phone_number)
     return {

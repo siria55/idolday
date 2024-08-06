@@ -1,7 +1,8 @@
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, field_validator
 
+from database import get_db
 from api import gen_token
 from models.user import User
 from sms import send_sms, generate_verification_code
@@ -51,13 +52,13 @@ class LoginVerifyCode(BaseModel):
 
 
 @router.post('/')
-def login(login: Login) -> ResToken:
+def login(login: Login, db = Depends(get_db)) -> ResToken:
     """
     手机号和密码登录，会返回 token
     """
     phone_number = login.phone_number
     password = login.password
-    user = User.get(phone_number)
+    user = User.get(db, phone_number)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
     if not user.verify_password(password):

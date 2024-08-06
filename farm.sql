@@ -16,7 +16,7 @@ CREATE TABLE devices (
 
 CREATE TABLE device_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    device_id INT NOT NULL,
+    device_id VARCHAR(255) NOT NULL,
     token VARCHAR(255) NOT NULL,
     expired_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
