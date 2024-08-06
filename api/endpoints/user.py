@@ -79,3 +79,19 @@ def device_binding(req: ReqDeviceBinding, token: str = Depends(get_current_user)
     if device:
         raise HTTPException(status_code=404, detail="设备已经存在")
     user.bind_device(req.device_id)
+
+class ReqDeviceUnbinding(BaseModel):
+    device_id: str
+
+@router.delete('/device/binding')
+def device_unbinding(req: ReqDeviceBinding, token: str = Depends(get_current_user)):
+    """
+    解绑设备，device token 失效
+    """
+    phone_number = decode_token(token)
+    user = User.get(phone_number)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    
+    
+    

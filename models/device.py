@@ -23,27 +23,30 @@ class Device(Base):
         user = session.query(cls).filter(cls.device_id == device_id).first()
         session.close()
         return user
-# class User(Base):
-#     __tablename__ = "users"
 
-#     id = Column(Integer, primary_key=True)
-#     phone_number = Column(String, index=True)
-#     nickname = Column(String, default='')
-#     password_hash = Column(String, default='')
-#     created_at = Column(DateTime, default=datetime.now)
 
-#     @classmethod
-#     def get(cls, phone_number):
-#         session = SessionLocal()
-#         user = session.query(cls).filter(cls.phone_number == phone_number).first()
-#         session.close()
-#         return user
+class DeviceToken(Base):
+    __tablename__ = "device_tokens"
+    
+    id = Column(Integer, primary_key=True)
+    device_id = Column(String, index=True)
+    token = Column(String, index=True)
+    expired_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.now)
 
-#     @classmethod
-#     def create(cls, phone_number, nickname='', password_hash=''):
-#         user = cls(phone_number=phone_number, nickname=nickname, password_hash=password_hash)
-#         with SessionLocal() as session:
-#             session.add(user)
-#             session.commit()
-#         return user
+    @classmethod
+    def get(cls, device_id):
+        session = SessionLocal()
+        user = session.query(cls).filter(cls.device_id == device_id).first()
+        session.close()
+        return user
 
+    @classmethod
+    def create(cls, device_id):
+        session = SessionLocal()
+        token = hashlib.md5(device_id.encode()).hexdigest()
+        device_token = cls(device_id=device_id, token=token)
+        session.add(device_token)
+        session.commit()
+        session.close()
+        return device_token
