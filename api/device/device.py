@@ -8,6 +8,7 @@ from typing import Optional
 
 from database import get_db
 from models.device import Device, DeviceToken
+from aliyun_services.mqtt import gen_mqtt_token
 router = APIRouter()
 
 
@@ -51,8 +52,10 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
     #MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
     client_id=groupId+'@@@'+device.device_id
     topic = 'twowheels'
-    userName ='Signature'+'|'+ALIBABA_CLOUD_ACCESS_KEY_ID+'|'+instanceId
-    password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), client_id.encode(), sha1).digest()).decode()
+    # userName ='Signature'+'|'+ALIBABA_CLOUD_ACCESS_KEY_ID+'|'+instanceId
+    # password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), client_id.encode(), sha1).digest()).decode()
+    userName = 'Token|' + ALIBABA_CLOUD_ACCESS_KEY_ID + '|' + instanceId
+    password = 'RW|' + gen_mqtt_token(device.device_id)
     data = {
         'status_code': 200,
         'device_id': device.device_id,

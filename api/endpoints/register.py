@@ -6,7 +6,7 @@ from database import get_db
 from api import gen_token
 from models.user import User
 
-from sms import send_sms, generate_verification_code
+from aliyun_services.sms import send_sms, generate_verification_code
 from memcached import mc
 
 router = APIRouter()

@@ -17,7 +17,7 @@ groupId = 'GID_TOAI'
 
 #MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
 client_id=groupId+'@@@'+'1221'
-topic = 'hotdog'
+topic = 'twowheels'
 #MQTT 接入点域名，实例初始化之后从控制台获取
 brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
 
@@ -67,8 +67,9 @@ client.on_message = on_message
 
 # userName ='Signature'+'|'+ALIBABA_CLOUD_ACCESS_KEY_ID+'|'+instanceId
 # password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), client_id.encode(), sha1).digest()).decode()
-userName = 'Token|' + ALIBABA_CLOUD_ACCESS_KEY_ID + '|' + instanceId
-password = 'RW|' + "LzMT+XLFl5s/YWJ/MlDz4t/Lq5HC1iGU1P28HAMaxYzmBSHQsWXgdISJ1ZJ+2cxamPdegCHh9e2txUHjWSgQZCU6ypBHh4PY+N83geW+AFFYQiZT8BnUo1SaWRued+anEygVED6zrrK+ZgktguzLVQnjF2bfSp1gSN9zekdwhIozsA0lsa7E3FZrDlnYtLZh8hSvuOwp1AB+PRONdIznOq+yR3CCx0vLQryj/NF6NFlL7WQI8F3KYtnCUFsi2QDWYIMnRJvEpgay7eFCMO4HabQ8y8ysZbQ1UI4BY0leKhBc2NXexKqBNE1VjqqJk/kljkQeimWXksOuEKLtbWn7gBOJTJYMtudO"
+userName = 'Token|LTAI5tLQxLqhF7ywAw797nwj|post-cn-lsk3uo7yv02'
+password = 'RW|LzMT+XLFl5s/YWJ/MlDz4t/Lq5HC1iGU1P28HAMaxYzmBSHQsWXgdISJ1ZJ+2cxamPdegCHh9e2txUHjWSgQZCU6ypBHh4PY+N83geW+AFFYQiZT8BnUo1SaWRued+anEygVED6zrrK+ZgktguzLVQnjF2bfSp1gSN9zekdwhIozsA0lsa7E3FZrDlnYtLZh8hSvuOwp1AB+PRONdIznOq+yR3CCx0vLQryj/NF6NFnlndTRH4NaYQcAe85cEOx4P6gh74HPhZgCHogawqY1Vu2znRqytWzP9nI8Bu5PbQ/z1WEmSJxNUODNwGwOBMZ/o/hG2ikvGONXqOYv9ywMYQo+qE0hEeQ2dOs7MDYwm2g='
 client.username_pw_set(userName, password)
 client.connect(brokerUrl)
-client.loop_forever()
+client.publish('twowheels/hhh/post', "hello world")
+# client.publish('twowheels', "hello world")

@@ -4,6 +4,7 @@ alibabacloud-credentials==0.3.4
 alibabacloud-dysmsapi20170525==3.0.0
 alibabacloud-endpoint-util==0.0.3
 alibabacloud-gateway-spi==0.0.1
+alibabacloud-onsmqtt20200420==1.2.0
 alibabacloud-openapi-util==0.2.2
 alibabacloud-tea==0.3.9
 alibabacloud-tea-openapi==0.3.10
