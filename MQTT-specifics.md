@@ -41,6 +41,7 @@ server to client
 ```
 移动类
 {
+    "command": "action",
     "action": "move_forward|move_backward|turn_left|turn_right",
     "value": {
         "duration": 10,   // 其中duration是行进/旋转持续时间, speed字段如果是前后则为移动的速度 单位mm/s,如果是左右转的角度（度为单位）
@@ -49,6 +50,7 @@ server to client
 }
 播放声音
 {
+    "command": "action",
     "action": "sound_play",
     "value": {
         "url": "xxxxxx",
@@ -57,6 +59,7 @@ server to client
 }
 表情
 {
+    "command": "action",
     "action": "screen_emoji",
     "value": {
         "emoji_name": "xxx",
@@ -64,17 +67,20 @@ server to client
 }
 音量设定
 {
+    "command": "action",
     "action": "volumn_set",
     "value": 0-100, // 的音量值
 }
 
 增大|减小音量
 {
+    "command": "action",
     "action": "volumn_up|volumn_down"  // 设备获得指令后增大/降低音量，如果已经是0/100就不调节
 }
 
 带时间序列的组合动作
 {
+    "command": "action",
     "action": "combine",
     "value": [
         {
@@ -90,6 +96,7 @@ server to client
 直接对舵机旋转/声音播放/表情变化的高级控制
 ```
 {
+    "command": "action",
     "action": "advance_control",
     "value": [
         {

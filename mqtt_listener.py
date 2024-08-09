@@ -17,7 +17,7 @@ groupId = 'GID_TOAI'
 
 #MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
 client_id=groupId+'@@@'+'server'
-topic = 'twowheels'
+topic = 'soundbox'
 #MQTT 接入点域名，实例初始化之后从控制台获取
 brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
 
