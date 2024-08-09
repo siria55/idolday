@@ -8,8 +8,8 @@ client to server
 
 server to client
 {
+    "command": "request_upload"
     "upload_url": "oss_url",
-    "file_path": "xxx",
     "voice_id": "xxx",
 }
 
@@ -30,6 +30,7 @@ client to server
 
 server to client
 {
+    "command": "request_update",
     "firmware_url": "xxx",
 }
 ```
