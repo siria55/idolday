@@ -1,5 +1,6 @@
 ## 上传声音
 
+```
 client to server
 {
     "command": "request_upload"
@@ -16,10 +17,13 @@ server to client
     "command": "nofity_upload",
     "voice_id": "xxx",
 }
+```
 
 ## server 向 client 发出的行为指令（下列都是 server to client）
 
-### 移动类
+
+```
+移动类
 {
     "action": "move_forward|move_backward|turn_left|turn_right",
     "value": {
@@ -27,7 +31,7 @@ server to client
         "speed": 5,
     }
 }
-### 播放声音
+播放声音
 {
     "action": "sound_play",
     "value": {
@@ -35,15 +39,14 @@ server to client
         "loop": true|false
     }
 }
-### 表情
+表情
 {
     "action": "screen_emoji",
     "value": {
         "emoji_name": "xxx",
     }
 }
-### 音量设定
-
+音量设定
 {
     "action": "volumn_set",
     "value": 0-100, // 的音量值
@@ -54,7 +57,7 @@ server to client
     "action": "volumn_up|volumn_down"  // 设备获得指令后增大/降低音量，如果已经是0/100就不调节
 }
 
-### 带时间序列的组合动作
+带时间序列的组合动作
 {
     "action": "combine",
     "value": [
@@ -65,9 +68,11 @@ server to client
         },...   // 数组的一个元素是前面 action 中的一种
     ]
 }
+```
 
 ### 高级控制
 直接对舵机旋转/声音播放/表情变化的高级控制
+```
 {
     "action": "advance_control",
     "value": [
@@ -117,5 +122,6 @@ server to client
         }
     ]
 }
+```
 
 
