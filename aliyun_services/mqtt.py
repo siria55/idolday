@@ -28,10 +28,10 @@ def create_client() -> OnsMqtt20200420Client:
     return OnsMqtt20200420Client(config)
 
 
-def gen_mqtt_token(device_id: str) -> str:
+def gen_mqtt_token(topic: str, device_id: str) -> str:
     client = create_client()
     apply_token_request = ons_mqtt_20200420_models.ApplyTokenRequest(
-        resources=f'twowheels/{device_id}/+',
+        resources=f'{topic}/{device_id}/+',
         instance_id='post-cn-lsk3uo7yv02',
         expire_time=9007199254740990,
         actions='R,W'
