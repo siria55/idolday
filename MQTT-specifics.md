@@ -9,7 +9,8 @@ client to server
 server to client
 {
     "upload_url": "oss_url",
-    "file_path": "xxx"
+    "file_path": "xxx",
+    "voice_id": "xxx",
 }
 
 上传完成后 client 告知 server
