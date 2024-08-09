@@ -19,6 +19,20 @@ server to client
 }
 ```
 
+## OTA
+```
+client to server
+{
+    "command": "request_update",
+    "version": "xxx" 
+}
+
+server to client
+{
+    "firmware_url": "xxx",
+}
+```
+
 ## server 向 client 发出的行为指令（下列都是 server to client）
 
 
@@ -70,7 +84,7 @@ server to client
 }
 ```
 
-### 高级控制
+## 高级控制
 直接对舵机旋转/声音播放/表情变化的高级控制
 ```
 {
@@ -123,5 +137,7 @@ server to client
     ]
 }
 ```
+
+
 
 
