@@ -27,6 +27,7 @@ bash
 sudo systemctl stop fastapi
 sudo systemctl start fastapi
 sudo systemctl enable fastapi
+sudo systemctl status fastapi
 sudo systemctl restart fastapi
 
 moonshot api key

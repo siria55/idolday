@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
+from datetime import datetime, timedelta
 from alibabacloud_onsmqtt20200420.client import Client as OnsMqtt20200420Client
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_onsmqtt20200420 import models as ons_mqtt_20200420_models
@@ -30,10 +31,12 @@ def create_client() -> OnsMqtt20200420Client:
 
 def gen_mqtt_token(topic: str, device_id: str) -> str:
     client = create_client()
+    future_time = datetime.now() + timedelta(minutes=5)
+    future_timestamp = int(future_time.timestamp()) * 1000
     apply_token_request = ons_mqtt_20200420_models.ApplyTokenRequest(
         resources=f'{topic}/{device_id}/+',
         instance_id='post-cn-lsk3uo7yv02',
-        expire_time=9007199254740990,
+        expire_time= future_timestamp,#9007199254740990,
         actions='R,W'
     )
     runtime = util_models.RuntimeOptions()

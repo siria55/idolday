@@ -23,5 +23,9 @@ def get_db():
         print('in fanalli')
         db.close()
         db_session.remove()
+        
+def get_db_non_async():
+    db = db_session()
+    return db
 
 Base = declarative_base()
