@@ -31,7 +31,7 @@ def create_client() -> OnsMqtt20200420Client:
 
 def gen_mqtt_token(topic: str, device_id: str) -> str:
     client = create_client()
-    future_time = datetime.now() + timedelta(minutes=5)
+    future_time = datetime.now() + timedelta(minutes=20)
     future_timestamp = int(future_time.timestamp()) * 1000
     apply_token_request = ons_mqtt_20200420_models.ApplyTokenRequest(
         resources=f'{topic}/{device_id}/+',

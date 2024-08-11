@@ -2,15 +2,11 @@ import os
 import threading
 import asyncio
 
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 
 from api.routers import api_router
-from api import get_current_user, decode_token
-from models.user import User
 
 from jobs import gen_voice_token
 

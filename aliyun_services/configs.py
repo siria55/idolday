@@ -1,2 +1,5 @@
 ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tLQxLqhF7ywAw797nwj'
 ALIBABA_CLOUD_ACCESS_KEY_SECRET = 'XDS3TwzljwoCEdwf6AqkP9GiXe4cY5'
+
+OSS_SERVICE_ENDPOINT = 'https://oss-cn-beijing.aliyuncs.com'
+OSS_BUCKET_NAME = 'toai-voice'

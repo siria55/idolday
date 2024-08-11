@@ -15,7 +15,7 @@ import paho.mqtt.client as mqtt
 from models.device import Device
 from database import get_db
 
-from .post_handler import request_upload
+from .post_handler import request_upload, send_action
 
 instanceId = "post-cn-lsk3uo7yv02"
 ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tLQxLqhF7ywAw797nwj'
@@ -59,10 +59,12 @@ def on_message(client, userdata, msg):
     print('msg.topic: ', msg.topic)
     print('msg.payload: ', str(msg.payload))
     if '/' not in msg.topic:
+        print('invalid topic')
         return
     parts = msg.topic.split('/')
     topic, device_id, method = parts[0], parts[1], parts[2]
     if topic != 'soundbox':
+        print('invalid topic')
         return
 
     db_generator = get_db()  # Get the generator object
@@ -72,24 +74,25 @@ def on_message(client, userdata, msg):
     if not device:
         print('device not found')
         return
-
+    print('method: ', method)
     # 客户端向服务器发送数据
     if method == 'post':
         try:
-            body = json.loads(msg.payload)
+            body = msgpack.unpackb(msg.payload)
             print('body: ', body)
             command = body.get('command', '')
             if command == 'request_upload':
                 request_upload(client, device_id, topic)
             elif command == 'nofity_upload':
                 print('nofity_upload')
+                send_action(client, device_id, topic)
                 # TODO nofiy upload to NLP server
 
             elif command == 'request_update':
                 print('request_update')
 
-        except:
-            pass
+        except Exception as e:
+            print('error: ', e)
 
     # 客户端从服务器获取数据
     elif method == 'get':
