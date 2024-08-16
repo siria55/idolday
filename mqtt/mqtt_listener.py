@@ -91,6 +91,11 @@ def on_message(client, userdata, msg):
             elif command == 'request_update':
                 print('request_update')
 
+            elif command == 'online':
+                print('device online, device_id: ', device_id)
+            elif command == 'lost':
+                print('device offline, device_id: ', device_id)
+
         except Exception as e:
             print('error: ', e)
 
