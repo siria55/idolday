@@ -4,6 +4,8 @@ mysql -hrm-2ze8try6287fyk6j3go.mysql.rds.aliyuncs.com -P3306 -uhotdog -p
 
 TOAItoai1234
 
+
+
 systemd /etc/systemd/system/fastapi.service
 ```
 [Unit]
