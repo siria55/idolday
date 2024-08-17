@@ -41,3 +41,14 @@ def send_action(client, device_id, topic):
         }
     }
     client.publish(f'{topic}/{device_id}/get', msgpack.packb(data))
+
+
+def send_msg(client, device_id, topic, msg):
+    data = {
+        "command": "test",
+        "action": "send_msg",
+        "value": {
+            "msg": msg,
+        }
+    }
+    client.publish(f'{topic}/{device_id}/get', msgpack.packb(data))

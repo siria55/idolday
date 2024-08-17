@@ -15,7 +15,7 @@ import paho.mqtt.client as mqtt
 from models.device import Device
 from database import get_db
 
-from .post_handler import request_upload, send_action
+from .post_handler import request_upload, send_action, send_msg
 
 instanceId = "post-cn-lsk3uo7yv02"
 ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tLQxLqhF7ywAw797nwj'
@@ -93,8 +93,10 @@ def on_message(client, userdata, msg):
 
             elif command == 'online':
                 print('device online, device_id: ', device_id)
+                send_msg(client, device_id, topic, 'you are online')
             elif command == 'lost':
                 print('device offline, device_id: ', device_id)
+                send_msg(client, device_id, topic, 'you are lost')
 
         except Exception as e:
             print('error: ', e)

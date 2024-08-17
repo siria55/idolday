@@ -32,7 +32,7 @@ def on_connect(client, userdata, flags, rc, ps):
     print('userdata = %s' % userdata)
     client.subscribe('soundbox/hhh/get', 0)
     # client.publish('soundbox/hhh/post', msgpack.packb({"command": "request_upload"}))
-    client.publish('soundbox/hhh/post', msgpack.packb({"command": "nofity_upload"}))
+    # client.publish('soundbox/hhh/post', msgpack.packb({"command": "nofity_upload"}))
     
     # for i in range(1, 11):
     #     print(i)
@@ -45,12 +45,14 @@ def on_message(client, userdata, msg):
     print('msg.payload: ', str(msg.payload))
     data = msgpack.unpackb(msg.payload)
     print(msg.topic + ' ' + str(data))
+
+
 def on_disconnect(client, userdata, rc):
     if rc != 0:
         print('Unexpected disconnection %s' % rc)
 
 
-def get_mq_info():
+def get_mq_client():
     url = 'http://localhost:8000/api/v1/devices/auth-mqtt'
     data = {
         'device_id': 'hhh',
@@ -72,6 +74,7 @@ def get_mq_info():
     client.on_message = on_message
     client.username_pw_set(mqtt_username, mqtt_password)
     client.connect(mqtt_broker_url)
-    client.loop_forever()
+    # client.loop_forever()
+    return client
     
     
