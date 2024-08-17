@@ -4,8 +4,6 @@ mysql -hrm-2ze8try6287fyk6j3go.mysql.rds.aliyuncs.com -P3306 -uhotdog -p
 
 TOAItoai1234
 
-
-
 systemd /etc/systemd/system/fastapi.service
 ```
 [Unit]
@@ -43,3 +41,7 @@ memcached
 docker 运行
 docker build -t fastapiapp .
 docker run -d --name fastapiapp_container -p 8000:8000 fastapiapp
+
+## 测试
+
+python -m pytest
