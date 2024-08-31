@@ -10,7 +10,6 @@ engine = create_engine(
 )
 
 session_factory = sessionmaker(bind=engine)
-Session = scoped_session(session_factory)
 # 创建 scoped_session
 db_session = scoped_session(session_factory)
 

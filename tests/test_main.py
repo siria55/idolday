@@ -5,9 +5,9 @@ import msgpack
 from ..main import app
 
 from ..mqtt.test_client import get_mq_client
+from ..database import get_db
 
 client = TestClient(app)
-
 
 def test_read_main():
     response = client.get("/")
@@ -40,9 +40,14 @@ def test_mqtt_auth():
     mqtt_password = res_data['mqtt_password']
     get_topic = res_data['get_topic']
     post_topic = res_data['post_topic']
-    
+
 
 def test_mq_msg():
     client = get_mq_client()
     client.publish('soundbox/hhh/post', msgpack.packb({"command": "online"}))
     client.publish('soundbox/hhh/post', msgpack.packb({"command": "lost"}))
+
+
+def test_user_login():
+    response = client.post("/api/v1/login", json={"phone_number": "15129037418", "password": "112233"})
+    assert response.status_code == 200

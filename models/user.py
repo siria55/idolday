@@ -22,18 +22,24 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     phone_number = Column(String, index=True)
+    email = Column(String, default='')
     nickname = Column(String, default='')
     password_hash = Column(String, default='')
     created_at = Column(DateTime, default=datetime.now)
-    
+
     @classmethod
-    def get(cls, db, phone_number):
-        user = db.query(cls).filter(cls.phone_number == phone_number).first()
+    def get(cls, db, phone_number=None, email=None):
+        if phone_number is not None:
+            user = db.query(cls).filter(cls.phone_number == phone_number).first()
+        elif email is not None:
+            user = db.query(cls).filter(cls.email == email).first()
         return user
 
     @classmethod
-    def create(cls, db, phone_number, nickname='', password_hash=''):
-        user = cls(phone_number=phone_number, nickname=nickname, password_hash=password_hash)
+    def create(cls, db, phone_number='', email='', nickname='', password_hash=''):
+        if phone_number == '' and email == '':
+            raise ValueError('phone_number and email cannot be empty at the same time')
+        user = cls(phone_number=phone_number, email=email, nickname=nickname, password_hash=password_hash)
         db.add(user)
         db.commit()
         return user

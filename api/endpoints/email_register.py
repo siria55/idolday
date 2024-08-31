@@ -67,34 +67,3 @@ def verify_code(register_verify_code: RegisterVerifyCode, db = Depends(get_db)) 
     return {
         'token': gen_token(phone_number)
     }
-
-
-# @router.post('/email/send-code')
-# def email_send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
-#     """
-#     注册，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
-#     """
-#     email = register_send_code.phone_number
-#     if User.get(db, email) is not None:
-#         raise HTTPException(status_code=404, detail="邮箱已注册")
-#     code = generate_verification_code()
-#     # send_sms(phone_number, code)
-#     mc.set(email, code, time=60 * 10)
-
-
-# @router.post('/email/verify-code')
-# def email_verify_code(register_verify_code: RegisterVerifyCode, db = Depends(get_db)) -> ResToken:
-#     """
-#     注册，验证验证码。验证成功返回 token
-#     """
-#     email = register_verify_code.phone_number
-#     code = register_verify_code.code
-#     origin_code = mc.get(email, default='')
-
-#     if origin_code != code:
-#         raise HTTPException(status_code=404, detail="验证码错误")
-#     User.create(db, email)
-
-#     mc.delete(email)
-#     # return {
-#     #     'token': gen_token(email
