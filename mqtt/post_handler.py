@@ -1,3 +1,4 @@
+import requests
 import oss2
 from datetime import datetime
 import time
@@ -30,17 +31,31 @@ def request_upload(client, device_id, topic):
     }
     client.publish(f'{topic}/{device_id}/get', msgpack.packb(data))
 
-
-def send_action(client, device_id, topic):
-    data = {
-        "command": "action",
-        "action": "move_forward",
-        "value": {
-            "duration": 10,
-            "speed": 5,
-        }
+def process_nlp(client, device_id, topic, user_id, voice_id):
+    NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
+    API_KEY = '2e5b3768d93c59a68553e2f70d2daa551231a451cbb64d8787a4139df9e8d62a'
+    auth = oss2.AuthV2(ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRET)
+    bucket = oss2.Bucket(auth, OSS_SERVICE_ENDPOINT, OSS_BUCKET_NAME)
+    oss_link = bucket.sign_url('GET', 'soundbox/'+voice_id, 3600 * 2, slash_safe=True)
+    print('签名URL的地址为：', oss_link)
+    post_data = {
+        'device_id': device_id,
+        'user_id': user_id,
+        'product_sn': "00001234567",
+        'oss_link': oss_link
     }
-    client.publish(f'{topic}/{device_id}/get', msgpack.packb(data))
+    headers = {
+        'X-API-KEY': API_KEY,
+    }
+    res = requests.post(NLP_SERVER_URL, json=post_data, headers=headers)
+    print('res.status_code = ', res.status_code)
+    data = res.json()
+    print('data = ', data)
+    if 'action' not in data:
+        print('nlp err = ', data)
+        return
+    action = data['action']
+    client.publish(f'{topic}/{device_id}/get', msgpack.packb(action))
 
 
 def send_msg(client, device_id, topic, msg):

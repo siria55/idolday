@@ -31,7 +31,7 @@ def on_connect(client, userdata, flags, rc, ps):
     print('flags = %s' % flags)
     print('userdata = %s' % userdata)
     client.subscribe('soundbox/hhh/get', 0)
-    # client.publish('soundbox/hhh/post', msgpack.packb({"command": "request_upload"}))
+    # client.publish('soundbox/hhh/post', msgpack.packb({"command": "nofity_upload", "voice_id": "hhh/20240906/1725557132.opus"}))
     # client.publish('soundbox/hhh/post', msgpack.packb({"command": "nofity_upload"}))
     
     # for i in range(1, 11):

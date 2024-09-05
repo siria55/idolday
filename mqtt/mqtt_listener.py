@@ -15,7 +15,7 @@ import paho.mqtt.client as mqtt
 from models.device import Device
 from database import get_db
 
-from .post_handler import request_upload, send_action, send_msg
+from .post_handler import request_upload, send_msg, process_nlp
 
 instanceId = "post-cn-lsk3uo7yv02"
 ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tLQxLqhF7ywAw797nwj'
@@ -85,7 +85,11 @@ def on_message(client, userdata, msg):
                 request_upload(client, device_id, topic)
             elif command == 'nofity_upload':
                 print('nofity_upload')
-                send_action(client, device_id, topic)
+                if 'voice_id' not in body:
+                    print('voice_id not found')
+                    return
+                voice_id = body.get('voice_id', '')
+                process_nlp(client, device_id, topic, device.user_id, voice_id)
                 # TODO nofiy upload to NLP server
 
             elif command == 'request_update':
