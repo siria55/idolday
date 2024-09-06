@@ -51,10 +51,10 @@ def process_nlp(client, device_id, topic, user_id, voice_id):
     print('res.status_code = ', res.status_code)
     data = res.json()
     print('data = ', data)
-    if 'action' not in data:
+    if 'actions' not in data:
         print('nlp err = ', data)
         return
-    action = data['action']
+    action = data['actions']
     client.publish(f'{topic}/{device_id}/get', msgpack.packb(action))
 
 
