@@ -54,8 +54,8 @@ def process_nlp(client, device_id, topic, user_id, voice_id):
     if 'actions' not in data:
         print('nlp err = ', data)
         return
-    action = data['actions']
-    client.publish(f'{topic}/{device_id}/get', msgpack.packb(action))
+    actions = data['actions']
+    client.publish(f'{topic}/{device_id}/get', msgpack.packb(actions))
 
 
 def send_msg(client, device_id, topic, msg):
