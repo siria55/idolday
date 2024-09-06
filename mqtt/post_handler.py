@@ -41,7 +41,6 @@ def process_nlp(client, device_id, topic, user_id, voice_id):
     post_data = {
         'device_id': device_id,
         'user_id': user_id,
-        'product_sn': "00001234567",
         'oss_link': oss_link
     }
     headers = {
