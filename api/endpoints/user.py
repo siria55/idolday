@@ -20,7 +20,6 @@ class UserRes(BaseModel):
 class UserInfo(BaseModel):
     password: Optional[str] = None
     nickname: Optional[str] = None
-    password: Optional[str] = None
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -47,12 +46,16 @@ def user_info(user_info: UserInfo, user: User = Depends(get_current_user), db = 
     """
     password = user_info.password
     nickname = user_info.nickname
-    password = user_info.password
     user.update(db, nickname=nickname, password=password)
-    user = User.get(db, user.phone_number)
+    if user.phone_number:
+        res_user = User.get(db, user.phone_number)
+    elif user.email:
+        res_user = User.get(db, email=user.email)
+    else:
+        raise HTTPException(status_code=404, detail="用户不存在")
     return {
-        'phone_number': user.phone_number,
-        'nickname': user.nickname or user.phone_number,
+        'phone_number': res_user.phone_number,
+        'nickname': res_user.nickname,
     }
 
 
@@ -74,6 +77,7 @@ def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user)
         'device_id': device.device_id,
         'token': device_token.token,
     }
+
 
 class ReqDeviceUnbinding(BaseModel):
     device_id: str
@@ -106,9 +110,11 @@ def device_token_gen(req: ReqDeviceBinding, user: User = Depends(get_current_use
         'token': device_token.token,
     }
 
+
 class ReqDeviceTokenRevoke(BaseModel):
     device_id: str
     device_token: str
+
 
 @router.post('/device/token-revoke')
 def device_token_revoke(req: ReqDeviceTokenRevoke, user: User = Depends(get_current_user), db = Depends(get_db)):

@@ -92,7 +92,7 @@ def verify_code(register_verify_code: RegisterVerifyCode, db = Depends(get_db)) 
 
 
 @router.post('/email/send-code')
-def email_send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
+def email_send_code(register_send_code: RegisterEmailSendCode, db = Depends(get_db)):
     """
     注册，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """

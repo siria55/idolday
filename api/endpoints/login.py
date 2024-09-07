@@ -88,7 +88,13 @@ def login(login: Login, db = Depends(get_db)) -> ResToken:
     """
     phone_number = login.phone_number
     password = login.password
-    user = User.get(db, phone_number)
+    email = login.email
+    if phone_number:
+        user = User.get(db, phone_number)
+    elif email:
+        user = User.get(db, email=email)
+    else:
+        raise HTTPException(status_code=404, detail="用户不存在")
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
     if not user.verify_password(password):
