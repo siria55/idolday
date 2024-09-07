@@ -7,6 +7,7 @@ from api import gen_token
 from models.user import User
 
 from aliyun_services.sms import send_sms, generate_verification_code
+from aliyun_services.email import send_email
 from memcached import mc
 
 router = APIRouter()
@@ -33,6 +34,27 @@ class RegisterVerifyCode(BaseModel):
         return v
 
 
+class RegisterEmailSendCode(BaseModel):
+    email: str
+
+    @field_validator('email')
+    def validate_email(cls, v):
+        if '@' not in v:
+            raise ValueError('请输入正确的邮箱')
+        return v
+
+
+class RegisterEmailVerifyCode(BaseModel):
+    email: str
+    code: str
+
+    @field_validator('email')
+    def validate_email(cls, v):
+        if '@' not in v:
+            raise ValueError('请输入正确的邮箱')
+        return v
+
+
 class ResToken(BaseModel):
     token: str
 
@@ -43,7 +65,7 @@ def send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
     注册，向这个手机号发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """
     phone_number = register_send_code.phone_number
-    if User.get(db, phone_number) is not None:
+    if User.get(db, phone_number=phone_number) is not None:
         raise HTTPException(status_code=404, detail="手机号已注册")
     code = generate_verification_code()
     send_sms(phone_number, code)
@@ -69,32 +91,33 @@ def verify_code(register_verify_code: RegisterVerifyCode, db = Depends(get_db)) 
     }
 
 
-# @router.post('/email/send-code')
-# def email_send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
-#     """
-#     注册，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
-#     """
-#     email = register_send_code.phone_number
-#     if User.get(db, email) is not None:
-#         raise HTTPException(status_code=404, detail="邮箱已注册")
-#     code = generate_verification_code()
-#     # send_sms(phone_number, code)
-#     mc.set(email, code, time=60 * 10)
+@router.post('/email/send-code')
+def email_send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
+    """
+    注册，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
+    """
+    email = register_send_code.email
+    if User.get(db, email=email) is not None:
+        raise HTTPException(status_code=404, detail="邮箱已注册")
+    code = generate_verification_code()
+    send_email(email, '图爱-注册验证码', f'您的验证码是：{code}')
+    mc.set(email, code, time=60 * 10)
 
 
-# @router.post('/email/verify-code')
-# def email_verify_code(register_verify_code: RegisterVerifyCode, db = Depends(get_db)) -> ResToken:
-#     """
-#     注册，验证验证码。验证成功返回 token
-#     """
-#     email = register_verify_code.phone_number
-#     code = register_verify_code.code
-#     origin_code = mc.get(email, default='')
+@router.post('/email/verify-code')
+def email_verify_code(register_verify_code: RegisterEmailVerifyCode, db = Depends(get_db)) -> ResToken:
+    """
+    注册，验证验证码。验证成功返回 token
+    """
+    email = register_verify_code.email
+    code = register_verify_code.code
+    origin_code = mc.get(email, default='')
 
-#     if origin_code != code:
-#         raise HTTPException(status_code=404, detail="验证码错误")
-#     User.create(db, email)
+    if origin_code != code:
+        raise HTTPException(status_code=404, detail="验证码错误")
+    User.create(db, email=email)
 
-#     mc.delete(email)
-#     # return {
-#     #     'token': gen_token(email
+    mc.delete(email)
+    return {
+        'token': gen_token(email)
+    }

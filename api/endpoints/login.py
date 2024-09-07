@@ -1,11 +1,13 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, field_validator
+from typing import Optional
 
 from database import get_db
 from api import gen_token
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
+from aliyun_services.email import send_email
 from memcached import mc
 
 router = APIRouter()
@@ -15,13 +17,20 @@ class ResToken(BaseModel):
 
 
 class Login(BaseModel):
-    phone_number: str
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
     password: str
 
     @field_validator('phone_number')
     def validate_phone_number(cls, v):
         if len(v) != 11:
             raise ValueError('请输入正确的手机号')
+        return v
+
+    @field_validator('email')
+    def validate_email(cls, v):
+        if '@' not in v:
+            raise ValueError('请输入正确的邮箱')
         return v
 
     @field_validator('password')
@@ -48,6 +57,27 @@ class LoginVerifyCode(BaseModel):
     def validate_phone_number(cls, v):
         if len(v) != 11:
             raise ValueError('请输入正确的手机号')
+        return v
+
+
+class LoginEmailSendCode(BaseModel):
+    email: str
+
+    @field_validator('email')
+    def validate_email(cls, v):
+        if '@' not in v:
+            raise ValueError('请输入正确的邮箱')
+        return v
+
+
+class LoginEmailVerifyCode(BaseModel):
+    email: str
+    code: str
+
+    @field_validator('email')
+    def validate_email(cls, v):
+        if '@' not in v:
+            raise ValueError('请输入正确的邮箱')
         return v
 
 
@@ -93,4 +123,31 @@ def login_verify_code(login_verify_code: LoginVerifyCode) -> ResToken:
     mc.delete(phone_number)
     return {
         'token': gen_token(phone_number)
+    }
+
+
+@router.post('/email/send-code')
+def login_email_send_code(login_send_code: LoginEmailSendCode):
+    """
+    邮箱验证码登录，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
+    """
+    email = login_send_code.email
+    code = generate_verification_code()
+    send_email(email, '图爱-登录验证码', f'您的验证码是：{code}')
+    mc.set(email, code, time=60 * 10)
+
+
+@router.post('/email/verify-code')
+def login_email_verify_code(login_verify_code: LoginEmailVerifyCode) -> ResToken:
+    """
+    登录，验证验证码。验证成功返回 token
+    """
+    email = login_verify_code.email
+    code = login_verify_code.code
+    origin_code = mc.get(email, default='')
+    if origin_code != code:
+        raise HTTPException(status_code=400, detail="验证码错误")
+    mc.delete(email)
+    return {
+        'token': gen_token(email)
     }
