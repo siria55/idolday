@@ -68,3 +68,6 @@ class User(Base):
             db.delete(device)
             db.commit()
         return device
+
+    def get_devices(self, db):
+        return db.query(Device).filter(Device.user_id == self.id).all()

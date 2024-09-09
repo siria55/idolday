@@ -59,6 +59,29 @@ def user_info(user_info: UserInfo, user: User = Depends(get_current_user), db = 
     }
 
 
+class ResDevice(BaseModel):
+    device_id: str
+    device_token: str
+
+class ResUserDevices(BaseModel):
+    devices: list[ResDevice]
+
+
+@router.get('/devices')
+def user_devices(user: User = Depends(get_current_user), db = Depends(get_db)) -> ResUserDevices:
+    """
+    获取用户绑定的设备
+    """
+    devices = user.get_devices(db)
+    return {
+        'devices': [{
+            'device_id': device.device_id,
+            # 'type': device.type,
+            'device_token': device.get_last_valid_token(db).token,
+        } for device in devices]
+    }
+
+
 class ReqDeviceBinding(BaseModel):
     device_id: str
 

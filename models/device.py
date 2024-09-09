@@ -23,6 +23,13 @@ class Device(Base):
         device = db.query(cls).filter(cls.device_id == device_id).first()
         return device
 
+    def get_last_valid_token(self, db):
+        tokens = db.query(DeviceToken).filter(DeviceToken.device_id == self.device_id, DeviceToken.expired_at > datetime.now()).all()
+        if not tokens:
+            return ''
+        tokens.sort(key=lambda x: x.expired_at, reverse=True)
+        return tokens[0]
+
 
 class DeviceToken(Base):
     __tablename__ = "device_tokens"
