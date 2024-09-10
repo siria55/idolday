@@ -65,6 +65,7 @@ class User(Base):
     def unbind_device(self, db, device_id):
         device = db.query(Device).filter(Device.device_id == device_id).first()
         if device:
+            device.remove_tokens(db)
             db.delete(device)
             db.commit()
         return device

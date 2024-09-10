@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, field_validator
 from typing import Optional
 
@@ -77,7 +77,7 @@ def user_devices(user: User = Depends(get_current_user), db = Depends(get_db)) -
         'devices': [{
             'device_id': device.device_id,
             # 'type': device.type,
-            'device_token': device.get_last_valid_token(db).token,
+            'device_token': device.get_last_valid_token(db).token if device.get_last_valid_token(db) else '',
         } for device in devices]
     }
 
@@ -87,7 +87,7 @@ class ReqDeviceBinding(BaseModel):
 
 
 @router.post('/device/binding')
-def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user), db = Depends(get_db)):
+def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user), db = Depends(get_db)) -> ResDevice:
     """
     绑定设备
     """
@@ -98,7 +98,7 @@ def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user)
     device_token = DeviceToken.create(db, device.device_id)
     return {
         'device_id': device.device_id,
-        'token': device_token.token,
+        'device_token': device_token.token,
     }
 
 
@@ -118,7 +118,7 @@ def device_unbinding(req: ReqDeviceBinding, user: User = Depends(get_current_use
 
 
 @router.post('/device/token-gen')
-def device_token_gen(req: ReqDeviceBinding, user: User = Depends(get_current_user), db = Depends(get_db)):
+def device_token_gen(req: ReqDeviceBinding, user: User = Depends(get_current_user), db = Depends(get_db)) -> ResDevice:
     """
     生成设备 token
     """
@@ -130,7 +130,7 @@ def device_token_gen(req: ReqDeviceBinding, user: User = Depends(get_current_use
     device_token = DeviceToken.create(db, device.device_id)
     return {
         'device_id': device.device_id,
-        'token': device_token.token,
+        'device_token': device_token.token,
     }
 
 

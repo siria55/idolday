@@ -9,6 +9,7 @@ import hashlib
 
 DEVICE_TYPE_MOVING_SPEAKER = 1
 
+
 class Device(Base):
     __tablename__ = "devices"
     
@@ -23,17 +24,21 @@ class Device(Base):
         device = db.query(cls).filter(cls.device_id == device_id).first()
         return device
 
+    def remove_tokens(self, db):
+        db.query(DeviceToken).filter(DeviceToken.device_id == self.device_id).delete()
+        db.commit()
+
     def get_last_valid_token(self, db):
         tokens = db.query(DeviceToken).filter(DeviceToken.device_id == self.device_id, DeviceToken.expired_at > datetime.now()).all()
         if not tokens:
-            return ''
+            return None
         tokens.sort(key=lambda x: x.expired_at, reverse=True)
         return tokens[0]
 
 
 class DeviceToken(Base):
     __tablename__ = "device_tokens"
-    
+
     id = Column(Integer, primary_key=True)
     device_id = Column(String, index=True)
     token = Column(String, index=True)
@@ -48,15 +53,14 @@ class DeviceToken(Base):
     @classmethod
     def create(cls, db, device_id):
         token = hashlib.md5(device_id.encode() + str(int(time())).encode()).hexdigest()
-        device_token = cls(device_id=device_id, token=token, expired_at=datetime.now() + timedelta(days=3000))
+        device_token = cls(device_id=device_id, token=token, expired_at=datetime(year=2038, month=1, day=1))
         db.add(device_token)
         db.commit()
         return device_token
 
     def revoke(self, db):
-        self.expired_at = datetime.now()
+        db.delete(self)
         db.commit()
-        db.refresh(self)
 
     @property
     def expired(self):
