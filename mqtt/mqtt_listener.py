@@ -83,8 +83,8 @@ def on_message(client, userdata, msg):
             command = body.get('command', '')
             if command == 'request_upload':
                 request_upload(client, device_id, topic)
-            elif command == 'nofity_upload':
-                print('nofity_upload')
+            elif command == 'notify_upload':
+                print('notify_upload')
                 if 'voice_id' not in body:
                     print('voice_id not found')
                     return

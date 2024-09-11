@@ -30,9 +30,9 @@ def on_connect(client, userdata, flags, rc, ps):
     print('Connected with result code ' + str(rc))
     print('flags = %s' % flags)
     print('userdata = %s' % userdata)
-    client.subscribe('soundbox/hhh/get', 0)
-    # client.publish('soundbox/hhh/post', msgpack.packb({"command": "nofity_upload", "voice_id": "hhh/20240906/1725557132.opus"}))
-    # client.publish('soundbox/hhh/post', msgpack.packb({"command": "nofity_upload"}))
+    client.subscribe('soundbox/0000aaaa/get', 0)
+    # client.publish('soundbox/0000aaaa/post', msgpack.packb({"command": "notify_upload", "voice_id": "hhh/20240906/1725557132.opus"}))
+    # client.publish('soundbox/0000aaaa/post', msgpack.packb({"command": "notify_upload"}))
     
     # for i in range(1, 11):
     #     print(i)
@@ -55,8 +55,8 @@ def on_disconnect(client, userdata, rc):
 def get_mq_client():
     url = 'http://localhost:8000/api/v1/devices/auth-mqtt'
     data = {
-        'device_id': 'hhh',
-        'device_token': 'f8e930f261602b52cea21897306bc88f'
+        'device_id': '0000aaaa',
+        'device_token': 'f49d84309c43a2d3310208a2388fa4ce'
     }
     res = requests.post(url, json=data)
     res_data = res.json()

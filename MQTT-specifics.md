@@ -15,7 +15,7 @@ server to client
 
 上传完成后 client 告知 server
 {
-    "command": "nofity_upload",
+    "command": "notify_upload",
     "voice_id": "xxx",
 }
 ```
