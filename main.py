@@ -17,7 +17,7 @@ from mqtt.mqtt_listener import mqtt_listener_run
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://setup.toaitoys.com"],
+    allow_origins=["https://setup.toaitoys.com", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

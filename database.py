@@ -19,7 +19,6 @@ def get_db():
     try:
         yield db
     finally:
-        print('in fanalli')
         db.close()
         db_session.remove()
         

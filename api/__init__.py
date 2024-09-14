@@ -1,10 +1,28 @@
 import jwt
+import requests
 
-from fastapi import HTTPException, Header, Depends
+from fastapi import HTTPException, Header, Depends, Form
 
 from database import get_db
 
 from models.user import User
+
+
+SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
+
+def verify_hcaptcha(hcaptcha_response: str = Form(...)):
+    data = {
+        'secret': SECRET_KEY,
+        'response': hcaptcha_response
+    }
+    response = requests.post('https://hcaptcha.com/siteverify', data=data)
+    result = response.json()
+    
+    if result['success']:
+        return True
+    else:
+        print('captcha err = ', result)
+        return False
 
 
 def get_current_user(Authorization: str = Header(...), db = Depends(get_db)):  # 使用Header依赖提取token

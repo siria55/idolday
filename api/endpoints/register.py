@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, field_validator
 
 from database import get_db
-from api import gen_token
+from api import gen_token, verify_hcaptcha
 from models.user import User
 
 from aliyun_services.sms import send_sms, generate_verification_code
@@ -65,6 +65,10 @@ def send_code(register_send_code: RegisterSendCode, db = Depends(get_db)):
     注册，向这个手机号发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """
     phone_number = register_send_code.phone_number
+    hcapcha_response = register_send_code.hcaptcha_response
+    if not verify_hcaptcha(hcapcha_response):
+        raise HTTPException(status_code=400, detail="hcapcha 验证码错误")
+
     if User.get(db, phone_number=phone_number) is not None:
         raise HTTPException(status_code=404, detail="手机号已注册")
     code = generate_verification_code()
@@ -97,6 +101,10 @@ def email_send_code(register_send_code: RegisterEmailSendCode, db = Depends(get_
     注册，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """
     email = register_send_code.email
+    hcapcha_response = register_send_code.hcaptcha_response
+    if not verify_hcaptcha(hcapcha_response):
+        raise HTTPException(status_code=400, detail="hcapcha 验证码错误")
+
     if User.get(db, email=email) is not None:
         raise HTTPException(status_code=404, detail="邮箱已注册")
     code = generate_verification_code()
