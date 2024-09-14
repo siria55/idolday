@@ -116,9 +116,9 @@ def login_send_code(login_send_code: LoginSendCode):
 
 
 @router.post('/verify-code')
-def login_verify_code(login_verify_code: LoginVerifyCode) -> ResToken:
+def login_verify_code(login_verify_code: LoginVerifyCode,  db = Depends(get_db)) -> ResToken:
     """
-    登录，验证验证码。验证成功返回 token
+    登录，验证验证码。如果是新用户会直接创建。验证成功返回 token
     """
     phone_number = login_verify_code.phone_number
     code = login_verify_code.code
@@ -126,6 +126,7 @@ def login_verify_code(login_verify_code: LoginVerifyCode) -> ResToken:
     print(f'origin_code = {origin_code}')
     if origin_code != code:
         raise HTTPException(status_code=400, detail="验证码错误")
+    User.create(db, phone_number)
     mc.delete(phone_number)
     return {
         'token': gen_token(phone_number)
@@ -139,20 +140,21 @@ def login_email_send_code(login_send_code: LoginEmailSendCode):
     """
     email = login_send_code.email
     code = generate_verification_code()
-    send_email(email, '图爱-登录验证码', f'您的验证码是：{code}')
+    send_email(email, '图爱-登录 / 注册验证码', f'您的验证码是：{code}')
     mc.set(email, code, time=60 * 10)
 
 
 @router.post('/email/verify-code')
-def login_email_verify_code(login_verify_code: LoginEmailVerifyCode) -> ResToken:
+def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depends(get_db)) -> ResToken:
     """
-    登录，验证验证码。验证成功返回 token
+    登录，验证验证码。如果是新用户会直接创建。验证成功返回 token
     """
     email = login_verify_code.email
     code = login_verify_code.code
     origin_code = mc.get(email, default='')
     if origin_code != code:
         raise HTTPException(status_code=400, detail="验证码错误")
+    User.create(db, email=email)
     mc.delete(email)
     return {
         'token': gen_token(email)

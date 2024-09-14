@@ -26,6 +26,7 @@ def create_client() -> Dm20151123Client:
 def send_email(to_email, subject, html_body):
     client = create_client()
     single_send_mail_request = dm_20151123_models.SingleSendMailRequest(
+        from_alias='ToAI Toys',
         account_name='notify@notify.toaitoys.com',
         address_type=1,
         reply_to_address=False,

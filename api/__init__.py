@@ -25,9 +25,9 @@ def get_current_user(Authorization: str = Header(...), db = Depends(get_db)):  #
         user = User.get(db, email=phone_number_or_email)
     else:
         user = User.get(db, phone_number=phone_number_or_email)
-    print('user 111 email = ', user.email)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
+    print('user 111 email = ', user.email)
     return user  # 实际场景中这里可能返回解析token得到的用户信息
 
 
