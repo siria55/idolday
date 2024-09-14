@@ -82,14 +82,20 @@ def on_message(client, userdata, msg):
             print('body: ', body)
             command = body.get('command', '')
             if command == 'request_upload':
+                time1 = time.time()
                 request_upload(client, device_id, topic)
+                time2 = time.time()
+                print('TIME 后端生成 oss link 时间: ', time2 - time1)
             elif command == 'notify_upload':
                 print('notify_upload')
                 if 'voice_id' not in body:
                     print('voice_id not found')
                     return
                 voice_id = body.get('voice_id', '')
+                time1 = time.time()
                 process_nlp(client, device_id, topic, device.user_id, voice_id)
+                time2 = time.time()
+                print('TIME 生成 NLP 参数 + NLP 整个返回时间: ', time2 - time1)
                 # TODO nofiy upload to NLP server
 
             elif command == 'request_update':

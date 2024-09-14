@@ -126,7 +126,8 @@ def login_verify_code(login_verify_code: LoginVerifyCode,  db = Depends(get_db))
     print(f'origin_code = {origin_code}')
     if origin_code != code:
         raise HTTPException(status_code=400, detail="验证码错误")
-    User.create(db, phone_number)
+    if not User.get(db, phone_number=phone_number):
+        User.create(db, phone_number)
     mc.delete(phone_number)
     return {
         'token': gen_token(phone_number)
@@ -154,7 +155,8 @@ def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depend
     origin_code = mc.get(email, default='')
     if origin_code != code:
         raise HTTPException(status_code=400, detail="验证码错误")
-    User.create(db, email=email)
+    if not User.get(db, email=email):
+        User.create(db, email=email)
     mc.delete(email)
     return {
         'token': gen_token(email)

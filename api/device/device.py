@@ -27,6 +27,10 @@ class ResAuth(BaseModel):
     firmware_version: str
 
 
+class ResAuthToken(BaseModel):
+    mqtt_token: str
+
+
 class ReqAuth(BaseModel):
     device_id: str
     device_token: str
@@ -59,5 +63,24 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
         'get_topic': topic + f'/{device.device_id}/get',
         'post_topic': topic + f'/{device.device_id}/post',
         'firmware_version': '1.0.0',
+    }
+    return data
+
+
+@router.post('/auth-mqtt/token')
+def auth_token(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuthToken:
+    """
+    设备认证
+    """
+    device = Device.get(db, req_auth.device_id)
+    device_token = DeviceToken.get(db, req_auth.device_id, req_auth.device_token)
+    if not device:
+        raise HTTPException(status_code=404, detail="设备不存在")
+    if not device_token or device_token.expired:
+        raise HTTPException(status_code=403, detail="设备 token 错误")
+
+    topic = 'soundbox'
+    data = {
+        'mqtt_token': gen_mqtt_token(topic, device.device_id),
     }
     return data
