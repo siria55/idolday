@@ -109,7 +109,7 @@ def login(login: Login, db = Depends(get_db)) -> ResToken:
         'token': token
     }
     response = JSONResponse(content=content)
-    response.set_cookie(key='session', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
+    response.set_cookie(key='session', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return response
 
 
@@ -180,5 +180,5 @@ def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depend
     }
     response = JSONResponse(content=content)
     response.headers['test'] = 'test'
-    response.set_cookie(key="session", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
+    response.set_cookie(key="session", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return response
