@@ -91,6 +91,8 @@ def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user)
     """
     绑定设备
     """
+    if req.device_id == '':
+        raise HTTPException(status_code=400, detail="设备 ID 不能为空")
     device = Device.get(db, req.device_id)
     if device:
         raise HTTPException(status_code=404, detail="设备已经存在")

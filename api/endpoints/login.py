@@ -1,5 +1,6 @@
 
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 from typing import Optional
 
@@ -64,7 +65,7 @@ class LoginVerifyCode(BaseModel):
 
 class LoginEmailSendCode(BaseModel):
     email: str
-    hcaptcha_response: str
+    # hcaptcha_response: str
 
     @field_validator('email')
     def validate_email(cls, v):
@@ -102,42 +103,47 @@ def login(login: Login, db = Depends(get_db)) -> ResToken:
         raise HTTPException(status_code=404, detail="用户不存在")
     if not user.verify_password(password):
         raise HTTPException(status_code=400, detail="密码错误")
-    return {
-        'token': gen_token(phone_number)
+
+    token = gen_token(phone_number or email)
+    content = {
+        'token': token
     }
+    response = JSONResponse(content=content)
+    response.set_cookie(key='session_id', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
+    return response
 
 
-@router.post('/send-code')
-def login_send_code(login_send_code: LoginSendCode):
-    """
-    手机验证码登录，向这个手机号发送验证码。重发验证码也是这个 url，之前的验证码会失效
-    """
-    phone_number = login_send_code.phone_number
-    hcaptcha_response = login_send_code.hcaptcha_response
-    if not verify_hcaptcha(hcaptcha_response):
-        raise HTTPException(status_code=400, detail="hcaptcha 验证码错误")
-    code = generate_verification_code()
-    send_sms(phone_number, code)
-    mc.set(phone_number, code, time=60 * 10)
+# @router.post('/send-code')
+# def login_send_code(login_send_code: LoginSendCode):
+#     """
+#     手机验证码登录，向这个手机号发送验证码。重发验证码也是这个 url，之前的验证码会失效
+#     """
+#     phone_number = login_send_code.phone_number
+#     hcaptcha_response = login_send_code.hcaptcha_response
+#     if not verify_hcaptcha(hcaptcha_response):
+#         raise HTTPException(status_code=400, detail="hcaptcha 验证码错误")
+#     code = generate_verification_code()
+#     send_sms(phone_number, code)
+#     mc.set(phone_number, code, time=60 * 10)
 
 
-@router.post('/verify-code')
-def login_verify_code(login_verify_code: LoginVerifyCode,  db = Depends(get_db)) -> ResToken:
-    """
-    登录，验证验证码。如果是新用户会直接创建。验证成功返回 token
-    """
-    phone_number = login_verify_code.phone_number
-    code = login_verify_code.code
-    origin_code = mc.get(phone_number, default='')
-    print(f'origin_code = {origin_code}')
-    if origin_code != code:
-        raise HTTPException(status_code=400, detail="验证码错误")
-    if not User.get(db, phone_number=phone_number):
-        User.create(db, phone_number)
-    mc.delete(phone_number)
-    return {
-        'token': gen_token(phone_number)
-    }
+# @router.post('/verify-code')
+# def login_verify_code(login_verify_code: LoginVerifyCode,  db = Depends(get_db)) -> ResToken:
+#     """
+#     登录，验证验证码。如果是新用户会直接创建。验证成功返回 token
+#     """
+#     phone_number = login_verify_code.phone_number
+#     code = login_verify_code.code
+#     origin_code = mc.get(phone_number, default='')
+#     print(f'origin_code = {origin_code}')
+#     if origin_code != code:
+#         raise HTTPException(status_code=400, detail="验证码错误")
+#     if not User.get(db, phone_number=phone_number):
+#         User.create(db, phone_number)
+#     mc.delete(phone_number)
+#     return {
+#         'token': gen_token(phone_number)
+#     }
 
 
 @router.post('/email/send-code')
@@ -168,6 +174,10 @@ def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depend
     if not User.get(db, email=email):
         User.create(db, email=email)
     mc.delete(email)
-    return {
-        'token': gen_token(email)
+    token = gen_token(email)
+    content = {
+        'token': token
     }
+    response = JSONResponse(content=content)
+    response.set_cookie(key="session_id", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
+    return response

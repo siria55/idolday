@@ -12,7 +12,7 @@ from .configs import ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRE
 
 def create_client() -> OnsMqtt20200420Client:
     """
-    使用AK&SK初始化账号Client
+    使用 AK&SK 初始化账号 Client
     @return: Client
     @throws Exception
     """

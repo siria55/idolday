@@ -1,9 +1,11 @@
 import jwt
 import requests
+from typing import Optional
 
-from fastapi import HTTPException, Header, Depends, Form
+from fastapi import HTTPException, Header, Depends, Form, Cookie
 
 from database import get_db
+
 
 from models.user import User
 
@@ -24,13 +26,18 @@ def verify_hcaptcha(hcaptcha_response: str = Form(...)):
         print('captcha err = ', result)
         return False
 
+def check_session(session_id: Optional[str] = Cookie(None), db = Depends(get_db)):
+    if session_id is None:
+        raise HTTPException(status_code=401, detail="session 错误，用户未登录")
+    print('session = ', session_id)
+    return session_id
 
-def get_current_user(Authorization: str = Header(...), db = Depends(get_db)):  # 使用Header依赖提取token
-    if not Authorization.startswith("Bearer "):
-        raise HTTPException(status_code=400, detail="Invalid token format")
-    token = Authorization.split(" ")[1]  # 获取token本身，去掉"Bearer "前缀
-    # if token != "expected_token":  # 假设expected_token是你期待的正确token
-    #     raise HTTPException(status_code=401, detail="Invalid or expired token")
+def get_current_user(Authorization: str = Header(None), session_id: Optional[str] = Cookie(None), db = Depends(get_db)):  # 使用Header依赖提取token
+    if Authorization and Authorization.startswith("Bearer "):
+        token = Authorization.split(" ")[1]
+    else:
+        token = check_session(session_id, db)
+
     try:
         phone_number_or_email = decode_token(token)
         print('phone_number_or_email = decode_token(token):', phone_number_or_email)
