@@ -26,17 +26,17 @@ def verify_hcaptcha(hcaptcha_response: str = Form(...)):
         print('captcha err = ', result)
         return False
 
-def check_session(session_id: Optional[str] = Cookie(None), db = Depends(get_db)):
-    if session_id is None:
+def check_session(session: Optional[str] = Cookie(None), db = Depends(get_db)):
+    if session is None:
         raise HTTPException(status_code=401, detail="session 错误，用户未登录")
-    print('session = ', session_id)
-    return session_id
+    print('session = ', session)
+    return session
 
-def get_current_user(Authorization: str = Header(None), session_id: Optional[str] = Cookie(None), db = Depends(get_db)):  # 使用Header依赖提取token
+def get_current_user(Authorization: str = Header(None), session: Optional[str] = Cookie(None), db = Depends(get_db)):  # 使用Header依赖提取token
     if Authorization and Authorization.startswith("Bearer "):
         token = Authorization.split(" ")[1]
     else:
-        token = check_session(session_id, db)
+        token = check_session(session, db)
 
     try:
         phone_number_or_email = decode_token(token)

@@ -43,7 +43,7 @@ class Login(BaseModel):
 
 class LoginSendCode(BaseModel):
     phone_number: str
-    hcaptcha_response: str
+    hcaptcha_response: Optional[str] = None
 
     @field_validator('phone_number')
     def validate_phone_number(cls, v):
@@ -65,7 +65,7 @@ class LoginVerifyCode(BaseModel):
 
 class LoginEmailSendCode(BaseModel):
     email: str
-    # hcaptcha_response: str
+    hcaptcha_response: Optional[str] = None
 
     @field_validator('email')
     def validate_email(cls, v):
@@ -109,7 +109,7 @@ def login(login: Login, db = Depends(get_db)) -> ResToken:
         'token': token
     }
     response = JSONResponse(content=content)
-    response.set_cookie(key='session_id', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
+    response.set_cookie(key='session', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
     return response
 
 
@@ -179,5 +179,6 @@ def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depend
         'token': token
     }
     response = JSONResponse(content=content)
-    response.set_cookie(key="session_id", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
+    response.headers['test'] = 'test'
+    response.set_cookie(key="session", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12)
     return response
