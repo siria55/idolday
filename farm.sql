@@ -22,3 +22,11 @@ CREATE TABLE device_tokens (
     expired_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) AUTO_INCREMENT=1000;
+
+------ admin ------
+CREATE TABLE admin_users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+) AUTO_INCREMENT=1000;
