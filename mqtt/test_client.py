@@ -7,6 +7,7 @@ import requests
 from paho.mqtt.client import MQTT_LOG_INFO, MQTT_LOG_NOTICE, MQTT_LOG_WARNING, MQTT_LOG_ERR, MQTT_LOG_DEBUG
 import paho.mqtt.client as mqtt
 import msgpack
+from .post_handler import send_msg
 
 # 定义回调函数
 def on_log(client, userdata, level, buf):
@@ -76,5 +77,25 @@ def get_mq_client():
     client.connect(mqtt_broker_url)
     # client.loop_forever()
     return client
-    
-    
+
+# for test
+client_id='GID_TOAI@@@server_test'
+brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
+
+def send_to_client():
+    device_id = '00004674224'
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id, protocol=mqtt.MQTTv311, clean_session=True)
+
+    userName = 'Signature|LTAI5tLQxLqhF7ywAw797nwj|post-cn-lsk3uo7yv02'
+    password = 'w8plu9z0LSkl0zzuDJTeVTuI7jM='
+
+    client.username_pw_set(userName, password)
+    client.connect(brokerUrl)
+    # topic = 'soundbox/' + device_id + '/post'
+    # client.loop_forever()
+    # send_msg(client, device_id, topic, 'you are lost')
+    sleep_command = {'action': 'combine',
+        'command': 'action',
+        'value': [{'action': 'sleep', 'sleep_ms': 0, 'time': 0, 'wait_event': []}]}
+    wifi_command = {}
+    client.publish(f'soundbox/{device_id}/get', msgpack.packb(sleep_command))

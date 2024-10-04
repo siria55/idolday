@@ -5,7 +5,7 @@ from pydantic import BaseModel, field_validator
 from typing import Optional
 
 from database import get_db
-from api import gen_token, verify_hcaptcha
+from api import gen_token, verify_hcaptcha, captcha_geetest
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
 from aliyun_services.email import send_email
@@ -44,6 +44,7 @@ class Login(BaseModel):
 class LoginSendCode(BaseModel):
     phone_number: str
     hcaptcha_response: Optional[str] = None
+    geetest_response: Optional[dict] = None
 
     @field_validator('phone_number')
     def validate_phone_number(cls, v):
@@ -66,6 +67,7 @@ class LoginVerifyCode(BaseModel):
 class LoginEmailSendCode(BaseModel):
     email: str
     hcaptcha_response: Optional[str] = None
+    geetest_response: Optional[str] = None
 
     @field_validator('email')
     def validate_email(cls, v):
@@ -152,9 +154,12 @@ def login_email_send_code(login_send_code: LoginEmailSendCode):
     邮箱验证码登录，向这个邮箱发送验证码。重发验证码也是这个 url，之前的验证码会失效
     """
     email = login_send_code.email
-    hcaptcha_response = login_send_code.hcaptcha_response
-    if not verify_hcaptcha(hcaptcha_response):
-        raise HTTPException(status_code=400, detail="hcaptcha 验证码错误")
+    # hcaptcha_response = login_send_code.hcaptcha_response
+    geetest_response = login_send_code.geetest_response
+    if not captcha_geetest(geetest_response):
+        raise HTTPException(status_code=400, detail="geetest 验证码错误")
+    # if not verify_hcaptcha(hcaptcha_response):
+    # raise HTTPException(status_code=400, detail="hcaptcha 验证码错误")
 
     code = generate_verification_code()
     send_email(email, '图爱 - 登录 / 注册验证码', f'您的验证码是：{code}')

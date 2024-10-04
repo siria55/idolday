@@ -28,5 +28,11 @@ CREATE TABLE admin_users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    display_name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL
+) AUTO_INCREMENT=1000;
+
+CREATE TABLE switches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    switch_key VARCHAR(255) NOT NULL,
+    switch_value INT NOT NULL
 ) AUTO_INCREMENT=1000;
