@@ -24,7 +24,6 @@ class ResAuth(BaseModel):
     mqtt_password: str
     get_topic: str
     post_topic: str
-    firmware_version: str
 
 
 class ResAuthToken(BaseModel):
@@ -34,6 +33,7 @@ class ResAuthToken(BaseModel):
 class ReqAuth(BaseModel):
     device_id: str
     device_token: str
+    firmware_version: Optional[str] = None
 
 
 @router.post('/auth-mqtt')
@@ -62,7 +62,6 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
         'mqtt_client_id': client_id,
         'get_topic': topic + f'/{device.device_id}/get',
         'post_topic': topic + f'/{device.device_id}/post',
-        'firmware_version': '1.0.0',
     }
     return data
 

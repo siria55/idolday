@@ -99,3 +99,41 @@ def send_to_client():
         'value': [{'action': 'sleep', 'sleep_ms': 0, 'time': 0, 'wait_event': []}]}
     wifi_command = {}
     client.publish(f'soundbox/{device_id}/get', msgpack.packb(sleep_command))
+
+
+def transformTimeToSleep(combine, auto_wait_sound_play=False):
+    time_offset = 0
+    transformed = []
+    index = 0
+    combine = sorted(combine, key=lambda x: x['time'])
+    f_time = combine[0]['time']
+    is_soundplay = 0
+    if f_time != 0:
+        time_offset = f_time
+    for item in combine:
+        if item['action'] == 'sound_play':
+            is_soundplay = 1
+        n_time = item['time']
+        sleep_ms = n_time - time_offset
+        time_offset = n_time
+        if index > 0:
+            transformed[index - 1]['sleep_ms'] = sleep_ms
+        if auto_wait_sound_play:
+            if is_soundplay == 1:
+                item['wait_event'] = ['audio_start']
+                is_soundplay = 2
+                if index > 0:
+                    transformed[index - 1]['wait_event'] = ['audio_end']
+            else:
+                item['wait_event'] = []
+        else:
+            item['wait_event'] = []
+        transformed.append(item)
+        index += 1
+    transformed[index - 1]['sleep_ms'] = 0
+    if auto_wait_sound_play:
+        if is_soundplay == 2:
+            transformed[index - 1]['wait_event'] = ['audio_end']
+    return transformed
+
+
