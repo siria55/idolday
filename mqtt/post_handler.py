@@ -33,6 +33,8 @@ def request_upload(client, device_id, topic):
 
 def process_nlp(client, device_id, topic, user_id, voice_id):
     NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
+    if device_id in ['00004674224']:
+        NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio_evil'
     API_KEY = '2e5b3768d93c59a68553e2f70d2daa551231a451cbb64d8787a4139df9e8d62a'
     auth = oss2.AuthV2(ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRET)
     bucket = oss2.Bucket(auth, OSS_SERVICE_ENDPOINT, OSS_BUCKET_NAME)
