@@ -43,6 +43,11 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
     """
     device = Device.get(db, req_auth.device_id)
     device_token = DeviceToken.get(db, req_auth.device_id, req_auth.device_token)
+    firmware_version = req_auth.firmware_version
+    if not firmware_version:
+        print('get firmware_version failed')
+        raise HTTPException(status_code=400, detail="固件版本号不能为空")
+    print('firmware_version: ', firmware_version)
     if not device:
         raise HTTPException(status_code=404, detail="设备不存在")
     if not device_token or device_token.expired:
