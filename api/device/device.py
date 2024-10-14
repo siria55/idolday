@@ -98,12 +98,12 @@ async def async_function(device_id: str, token: str, request: Request, db):
     def auth():
         nonlocal authed
 
-        # device = Device.get(db, device_id)
-        # device_token = DeviceToken.get(db, device_id, token)
-        # if not device:
-        #     return False
-        # if not device_token or device_token.expired:
-        #     return False
+        device = Device.get(db, device_id)
+        device_token = DeviceToken.get(db, device_id, token)
+        if not device:
+            return False
+        if not device_token or device_token.expired:
+            return False
         authed = True
 
     def send_stream():
@@ -116,12 +116,15 @@ async def async_function(device_id: str, token: str, request: Request, db):
             send_stream()
         else:
             if not auth():
-                break
+                print('not auth')
+                return False
 
 
 @router.post('/audio_upload')
 def audio_upload(device_id: str, device_token: str, request: Request, db = Depends(get_db)):
-    asyncio.run(async_function(device_id, device_token, request, db))  # 在同步函数中运行异步函数
+    authed = asyncio.run(async_function(device_id, device_token, request, db))  # 在同步函数中运行异步函数
+    if not authed:
+        raise HTTPException(status_code=403, detail="设备 token 错误")
     return {
         'status_code': 200,
     }
