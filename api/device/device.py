@@ -1,8 +1,9 @@
 import hmac
 import base64
 from hashlib import sha1
+import asyncio
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, field_validator
 from typing import Optional
 
@@ -88,3 +89,39 @@ def auth_token(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuthToken:
         'mqtt_token': gen_mqtt_token(topic, device.device_id),
     }
     return data
+
+
+async def async_function(device_id: str, token: str, request: Request, db):
+    body = b''
+    authed = False
+
+    def auth():
+        nonlocal authed
+
+        # device = Device.get(db, device_id)
+        # device_token = DeviceToken.get(db, device_id, token)
+        # if not device:
+        #     return False
+        # if not device_token or device_token.expired:
+        #     return False
+        authed = True
+
+    def send_stream():
+        nonlocal body
+        print('body = ', body)
+
+    async for chunk in request.stream():
+        body += chunk
+        if authed:
+            send_stream()
+        else:
+            if not auth():
+                break
+
+
+@router.post('/audio_upload')
+def audio_upload(device_id: str, device_token: str, request: Request, db = Depends(get_db)):
+    asyncio.run(async_function(device_id, device_token, request, db))  # 在同步函数中运行异步函数
+    return {
+        'status_code': 200,
+    }

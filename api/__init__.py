@@ -5,6 +5,7 @@ import requests
 from typing import Optional
 
 from fastapi import HTTPException, Header, Depends, Form, Cookie
+from fastapi.responses import JSONResponse
 
 from database import get_db
 
@@ -34,6 +35,8 @@ captcha_key = '710d2e50a92de5b7c44c072dd6d09187'
 api_server = 'http://gcaptcha4.geetest.com'
 def captcha_geetest(params):
     # 2.获取用户验证后前端传过来的验证参数
+    if not params:
+        return False
     data = json.loads(params)
     lot_number = data.get('lot_number', '')
     captcha_output = data.get('captcha_output', '')
@@ -109,3 +112,20 @@ def gen_token(phone_number_or_email):
 
 def decode_token(token):
     return jwt.decode(token, "secret", algorithms=["HS256"]).get('phone_number_or_email')
+
+
+def err_json_res(code, message):
+    res = {
+        'code': code,
+        'message': message,
+        'data': {}
+    }
+    return JSONResponse(status_code=200, content=res)
+
+def json_res(data):
+    res = {
+        'code': 0,
+        'message': 'success',
+        'data': data
+    }
+    return JSONResponse(status_code=200, content=res)

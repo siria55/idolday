@@ -1,5 +1,5 @@
 from fastapi import APIRouter
 from .device import router
 
-api_router = APIRouter()
-api_router.include_router(router, prefix="/device", tags=["Device"])
+# api_router = APIRouter()
+# api_router.include_router(router, prefix="/device", tags=["Device"])

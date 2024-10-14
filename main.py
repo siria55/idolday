@@ -1,9 +1,12 @@
 import os
 import threading
-import asyncio
+import json
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError, HTTPException
+from fastapi.responses import PlainTextResponse, JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -22,6 +25,27 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request, exc):
+    errs = exc.errors()
+    
+    if errs and 'type' in errs[0]:
+        print('11111')
+        print('errs[0] = ', errs[0])
+        res = {
+            'code': 4000,
+            'message': '参数错误',
+            'data': {}
+        }
+    else:
+        res = {
+            'code': 1000,
+            'message': '未知错误',
+            'data': {}
+        }
+    return JSONResponse(content=res)
 
 app.include_router(api_router, prefix="/api/v1")
 

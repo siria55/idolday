@@ -5,21 +5,27 @@ from typing import Optional
 
 from database import get_db
 from api import get_current_user
+from api import gen_token, verify_hcaptcha, err_json_res, json_res
 
 from models.user import User
 from models.device import Device, DeviceToken
 
 router = APIRouter()
 
+class UserResSub(BaseModel):
+    email: str
+    nickname: str
 
 class UserRes(BaseModel):
-    nickname: str
-    phone_number: str
+    code: int
+    message: str
+    data: UserResSub | dict
 
 
 class UserInfo(BaseModel):
-    password: Optional[str] = None
     nickname: Optional[str] = None
+    password: Optional[str] = None
+    email: Optional[str] = None
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -33,10 +39,10 @@ def user_info(user: User = Depends(get_current_user)) -> UserRes:
     """
     获取用户基础信息
     """
-    return {
-        'phone_number': user.phone_number,
-        'nickname': user.nickname or user.phone_number,
-    }
+    return json_res({
+        'email': user.email,
+        'nickname': user.nickname,
+    })
 
 
 @router.post('/info')
@@ -52,19 +58,29 @@ def user_info(user_info: UserInfo, user: User = Depends(get_current_user), db = 
     elif user.email:
         res_user = User.get(db, email=user.email)
     else:
-        raise HTTPException(status_code=404, detail="用户不存在")
-    return {
-        'phone_number': res_user.phone_number,
-        'nickname': res_user.nickname,
-    }
+        return err_json_res(10001, '用户不存在')
+    return json_res({
+        'phone_number': user.email,
+        'nickname': user.nickname,
+    })
 
 
-class ResDevice(BaseModel):
+class ResDeviceSub(BaseModel):
     device_id: str
     device_token: str
 
+class ResDevice(BaseModel):
+    code: int
+    message: str
+    data: ResDeviceSub | dict
+
+class ResUserDevicesSub(BaseModel):
+    devices: list[ResDeviceSub]
+
 class ResUserDevices(BaseModel):
-    devices: list[ResDevice]
+    code: int
+    message: str
+    data: ResUserDevicesSub | dict
 
 
 @router.get('/devices')
@@ -73,13 +89,12 @@ def user_devices(user: User = Depends(get_current_user), db = Depends(get_db)) -
     获取用户绑定的设备
     """
     devices = user.get_devices(db)
-    return {
+    return json_res({
         'devices': [{
             'device_id': device.device_id,
-            # 'type': device.type,
             'device_token': device.get_last_valid_token(db).token if device.get_last_valid_token(db) else '',
         } for device in devices]
-    }
+    })
 
 
 class ReqDeviceBinding(BaseModel):
@@ -92,16 +107,16 @@ def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user)
     绑定设备
     """
     if req.device_id == '':
-        raise HTTPException(status_code=400, detail="设备 ID 不能为空")
+        return err_json_res(20002, '设备 ID 不能为空')
     device = Device.get(db, req.device_id)
     if device:
-        raise HTTPException(status_code=404, detail="设备已经存在")
+        return err_json_res(20003, '设备已经存在')
     device = user.bind_device(db, req.device_id)
     device_token = DeviceToken.create(db, device.device_id)
-    return {
+    return json_res({
         'device_id': device.device_id,
         'device_token': device_token.token,
-    }
+    })
 
 
 class ReqDeviceUnbinding(BaseModel):
@@ -115,8 +130,9 @@ def device_unbinding(req: ReqDeviceBinding, user: User = Depends(get_current_use
     """
     device = Device.get(db, req.device_id)
     if not device:
-        raise HTTPException(status_code=404, detail="设备不存在")
+        return err_json_res(20004, '设备不存在')
     user.unbind_device(db, req.device_id)
+    return json_res({})
 
 
 @router.post('/device/token-gen')
@@ -126,14 +142,14 @@ def device_token_gen(req: ReqDeviceBinding, user: User = Depends(get_current_use
     """
     device = Device.get(db, req.device_id)
     if not device:
-        raise HTTPException(status_code=404, detail="设备不存在")
+        return err_json_res(20004, '设备不存在')
     if device.user_id != user.id:
-        raise HTTPException(status_code=403, detail="无权限操作该设备")
+        return err_json_res(20005, '无权限操作该设备')
     device_token = DeviceToken.create(db, device.device_id)
-    return {
+    return json_res({
         'device_id': device.device_id,
         'device_token': device_token.token,
-    }
+    })
 
 
 class ReqDeviceTokenRevoke(BaseModel):
@@ -149,10 +165,11 @@ def device_token_revoke(req: ReqDeviceTokenRevoke, user: User = Depends(get_curr
     device = Device.get(db, req.device_id)
     device_token = DeviceToken.get(db, req.device_id, token=req.device_token)
     if not device:
-        raise HTTPException(status_code=404, detail="设备不存在")
+        return err_json_res(20004, '设备不存在')
     if device.user_id != user.id:
-        raise HTTPException(status_code=403, detail="无权限操作该设备")
+        return err_json_res(20005, '无权限操作该设备')
     if not device_token:
-        raise HTTPException(status_code=404, detail="设备 token 不存在")
+        return err_json_res(20006, '设备 token 不存在')
 
     device_token.revoke(db)
+    return json_res({})

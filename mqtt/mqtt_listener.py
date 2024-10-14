@@ -23,7 +23,7 @@ ALIBABA_CLOUD_ACCESS_KEY_SECRET = 'XDS3TwzljwoCEdwf6AqkP9GiXe4cY5'
 groupId = 'GID_TOAI'
 
 #MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
-client_id=groupId+'@@@'+'server'
+client_id=groupId+'@@@'+'server_test2'
 topic = 'soundbox'
 #MQTT 接入点域名，实例初始化之后从控制台获取
 brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
@@ -137,6 +137,7 @@ userName ='Signature'+'|'+ALIBABA_CLOUD_ACCESS_KEY_ID+'|'+instanceId
 password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), client_id.encode(), sha1).digest()).decode()
 
 def mqtt_listener_run():
-    client.username_pw_set(userName, password)
-    client.connect(brokerUrl)
-    client.loop_forever()
+    pass
+    # client.username_pw_set(userName, password)
+    # client.connect(brokerUrl)
+    # client.loop_forever()
