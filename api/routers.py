@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from .endpoints import user, login, register, system
-from .device.routers import router as device_router
+from .device.device import router as device_router
 
 api_router = APIRouter()
 api_router.include_router(user.router, prefix="/users", tags=["Users"])

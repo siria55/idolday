@@ -1,0 +1,50 @@
+{
+  "SUCCESS": {
+    "code": 0,
+    "message": "success"
+  },
+  "PARAM_ERROR": {
+    "code": 4000,
+    "message": "参数错误"
+  },
+  "UNKNOWN_ERROR": {
+    "code": 1000,
+    "message": "其他错误"
+  },
+
+
+  "USER_NOT_FOUND": {
+    "code": 10001,
+    "message": "用户不存在"
+  },
+  "USER_PASSWORD_ERROR": {
+    "code": 10002,
+    "message": "密码错误"
+  },
+  "CAPTCHA_GEETEST_ERROR": {
+    "code": 10003,
+    "message": "极验验证失败"
+  },
+  "EMAIL_VERIFY_CODE_ERROR": {
+    "code": 10004,
+    "message": "邮箱验证码错误"
+  },
+
+  "DEVICE_ALREADY_EXISTS": {
+    "code": 20003,
+    "message": "设备已存在"
+  },
+  "DEVICE_NOT_FOUND": {
+    "code": 20004,
+    "message": "设备不存在"
+  },
+  "NO_AUTH_TO_DEVICE": {
+    "code": 20005,
+    "message": "没有权限操作该设备"
+  },
+  "DEVICE_TOKEN_ERROR": {
+    "code": 20006,
+    "message": "设备 token 错误"
+  }
+
+}

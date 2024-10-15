@@ -8,12 +8,29 @@ from fastapi import HTTPException, Header, Depends, Form, Cookie
 from fastapi.responses import JSONResponse
 
 from database import get_db
-
-
 from models.user import User
 
 
 SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
+
+class ErrorCodes:
+    def __init__(self, file_path=None):
+        if file_path:
+            self.load_from_file(file_path)
+
+    def load_from_file(self, file_path):
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            for key, value in data.items():
+                setattr(self, key, value)
+
+    def get_message(self, code):
+        for key, value in self.__dict__.items():
+            if 'code' in value and value['code'] == code:
+                return value.get("message", "Unknown error code")
+        return "Unknown error code"
+
+ERRCODES = ErrorCodes('return_code.json')
 
 def verify_hcaptcha(hcaptcha_response: str = Form(...)):
     data = {
@@ -75,7 +92,7 @@ def captcha_geetest(params):
 
 def check_session(session: Optional[str] = Cookie(None), db = Depends(get_db)):
     if session is None:
-        raise HTTPException(status_code=401, detail="session 错误，用户未登录")
+        return res_err(ERRCODES.USER_NOT_FOUND)
     print('session = ', session)
     return session
 
@@ -90,16 +107,16 @@ def get_current_user(Authorization: str = Header(None), session: Optional[str] =
         phone_number_or_email = decode_token(token)
         print('phone_number_or_email = decode_token(token):', phone_number_or_email)
     except Exception as e:
-        raise HTTPException(status_code=401, detail="用户不存在")
+        return res_err(ERRCODES.USER_NOT_FOUND)
     if not phone_number_or_email:
-        raise HTTPException(status_code=401, detail="用户不存在")
+        return res_err(ERRCODES.USER_NOT_FOUND)
 
     if '@' in phone_number_or_email:
         user = User.get(db, email=phone_number_or_email)
     else:
         user = User.get(db, phone_number=phone_number_or_email)
     if not user:
-        raise HTTPException(status_code=404, detail="用户不存在")
+        return res_err(ERRCODES.USER_NOT_FOUND)
     print('user 111 email = ', user.email)
     return user  # 实际场景中这里可能返回解析token得到的用户信息
 
@@ -114,15 +131,15 @@ def decode_token(token):
     return jwt.decode(token, "secret", algorithms=["HS256"]).get('phone_number_or_email')
 
 
-def err_json_res(code, message):
+def res_err(err_codes):
     res = {
-        'code': code,
-        'message': message,
+        'code': err_codes.get('code', 0),
+        'message': err_codes.get('message', 'success'),
         'data': {}
     }
     return JSONResponse(status_code=200, content=res)
 
-def json_res(data):
+def res_json(data={}):
     res = {
         'code': 0,
         'message': 'success',

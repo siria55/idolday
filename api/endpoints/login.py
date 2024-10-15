@@ -5,7 +5,7 @@ from pydantic import BaseModel, field_validator
 from typing import Optional
 
 from database import get_db
-from api import gen_token, verify_hcaptcha, captcha_geetest, err_json_res, json_res
+from api import gen_token, verify_hcaptcha, captcha_geetest, res_err, res_json, ERRCODES
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
 from aliyun_services.email import send_email
@@ -73,12 +73,12 @@ def login(login: Login, db = Depends(get_db)) -> ResTokenBase:
 
     user = User.get(db, email=email)
     if not user:
-        return err_json_res(10001, '用户不存在')
+        return res_err(ERRCODES.USER_NOT_FOUND)
     if not user.verify_password(password):
-        return err_json_res(10002, '登录密码错误')
+        return res_err(ERRCODES.USER_PASSWORD_ERROR)
 
     token = gen_token(email)
-    res = json_res({'token': token})
+    res = res_json({'token': token})
     res.set_cookie(key='session', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return res
 
@@ -92,14 +92,14 @@ def login_email_send_code(login_send_code: LoginEmailSendCode):
     # hcaptcha_response = login_send_code.hcaptcha_response
     geetest_response = login_send_code.geetest_response
     # if not captcha_geetest(geetest_response):
-    #     return err_json_res(10003, 'geetest 验证码错误')
+    #     return res_err(ERRCODES.CAPTCHA_GEETEST_ERROR)
     # if not verify_hcaptcha(hcaptcha_response):
     # raise HTTPException(status_code=400, detail="hcaptcha 验证码错误")
 
     code = generate_verification_code()
     send_email(email, '图爱 - 登录 / 注册验证码', f'您的验证码是：{code}')
     mc.set(email, code, time=60 * 10)
-    return json_res({})
+    return res_json()
 
 
 @router.post('/email/verify-code')
@@ -111,7 +111,7 @@ def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depend
     code = login_verify_code.code
     origin_code = mc.get(email, default='')
     if origin_code != code:
-        return err_json_res(10004, '邮箱验证码错误')
+        return res_err(ERRCODES.EMAIL_VERIFY_CODE_ERROR)
     if not User.get(db, email=email):
         User.create(db, email=email)
     mc.delete(email)
@@ -119,7 +119,7 @@ def login_email_verify_code(login_verify_code: LoginEmailVerifyCode, db = Depend
     content = {
         'token': token
     }
-    res = json_res(content)
+    res = res_json(content)
     res.headers['test'] = 'test'
     res.set_cookie(key="session", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return res

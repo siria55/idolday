@@ -5,7 +5,7 @@ from typing import Optional
 
 from database import get_db
 from api import get_current_user
-from api import gen_token, verify_hcaptcha, err_json_res, json_res
+from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES
 
 from models.user import User
 from models.device import Device, DeviceToken
@@ -39,7 +39,7 @@ def user_info(user: User = Depends(get_current_user)) -> UserRes:
     """
     获取用户基础信息
     """
-    return json_res({
+    return res_json({
         'email': user.email,
         'nickname': user.nickname,
     })
@@ -58,8 +58,8 @@ def user_info(user_info: UserInfo, user: User = Depends(get_current_user), db = 
     elif user.email:
         res_user = User.get(db, email=user.email)
     else:
-        return err_json_res(10001, '用户不存在')
-    return json_res({
+        return res_err(ERRCODES.USER_NOT_FOUND)
+    return res_json({
         'phone_number': user.email,
         'nickname': user.nickname,
     })
@@ -89,7 +89,7 @@ def user_devices(user: User = Depends(get_current_user), db = Depends(get_db)) -
     获取用户绑定的设备
     """
     devices = user.get_devices(db)
-    return json_res({
+    return res_json({
         'devices': [{
             'device_id': device.device_id,
             'device_token': device.get_last_valid_token(db).token if device.get_last_valid_token(db) else '',
@@ -107,13 +107,13 @@ def device_binding(req: ReqDeviceBinding, user: User = Depends(get_current_user)
     绑定设备
     """
     if req.device_id == '':
-        return err_json_res(20002, '设备 ID 不能为空')
+        return res_err(ERRCODES.PARAMS_ERROR)
     device = Device.get(db, req.device_id)
     if device:
-        return err_json_res(20003, '设备已经存在')
+        return res_err(ERRCODES.DEVICE_ALREADY_EXISTS)
     device = user.bind_device(db, req.device_id)
     device_token = DeviceToken.create(db, device.device_id)
-    return json_res({
+    return res_json({
         'device_id': device.device_id,
         'device_token': device_token.token,
     })
@@ -130,9 +130,9 @@ def device_unbinding(req: ReqDeviceBinding, user: User = Depends(get_current_use
     """
     device = Device.get(db, req.device_id)
     if not device:
-        return err_json_res(20004, '设备不存在')
+        return res_err(ERRCODES.DEVICE_NOT_FOUND)
     user.unbind_device(db, req.device_id)
-    return json_res({})
+    return res_json()
 
 
 @router.post('/device/token-gen')
@@ -142,11 +142,11 @@ def device_token_gen(req: ReqDeviceBinding, user: User = Depends(get_current_use
     """
     device = Device.get(db, req.device_id)
     if not device:
-        return err_json_res(20004, '设备不存在')
+        return res_err(ERRCODES.DEVICE_NOT_FOUND)
     if device.user_id != user.id:
-        return err_json_res(20005, '无权限操作该设备')
+        return res_err(ERRCODES.NO_AUTH_TO_DEVICE)
     device_token = DeviceToken.create(db, device.device_id)
-    return json_res({
+    return res_json({
         'device_id': device.device_id,
         'device_token': device_token.token,
     })
@@ -165,11 +165,11 @@ def device_token_revoke(req: ReqDeviceTokenRevoke, user: User = Depends(get_curr
     device = Device.get(db, req.device_id)
     device_token = DeviceToken.get(db, req.device_id, token=req.device_token)
     if not device:
-        return err_json_res(20004, '设备不存在')
+        return res_err(ERRCODES.DEVICE_NOT_FOUND)
     if device.user_id != user.id:
-        return err_json_res(20005, '无权限操作该设备')
+        return res_err(ERRCODES.NO_AUTH_TO_DEVICE)
     if not device_token:
-        return err_json_res(20006, '设备 token 不存在')
+        return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
 
     device_token.revoke(db)
-    return json_res({})
+    return res_json()

@@ -9,9 +9,11 @@ from typing import Optional
 
 from database import get_db
 from models.device import Device, DeviceToken
+from api import res_json, res_err, ERRCODES
 from aliyun_services.mqtt import gen_mqtt_token
 from aliyun_services.configs import (ALIBABA_CLOUD_ACCESS_KEY_ID,
     MQTT_BROKER_URL, MQTT_INSTANCE_ID, MQTT_GROUP_ID)
+
 router = APIRouter()
 
 
@@ -46,20 +48,17 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
     device_token = DeviceToken.get(db, req_auth.device_id, req_auth.device_token)
     firmware_version = req_auth.firmware_version
     if not firmware_version:
-        print('get firmware_version failed')
-        raise HTTPException(status_code=400, detail="固件版本号不能为空")
-    print('firmware_version: ', firmware_version)
+        return res_err(ERRCODES.PARAM_ERROR)
     if not device:
-        raise HTTPException(status_code=404, detail="设备不存在")
+        return res_err(ERRCODES.DEVICE_NOT_FOUND)
     if not device_token or device_token.expired:
-        raise HTTPException(status_code=403, detail="设备 token 错误")
+        return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
 
     client_id=MQTT_GROUP_ID+'@@@'+device.device_id
     topic = 'soundbox'
     userName = 'Token|' + ALIBABA_CLOUD_ACCESS_KEY_ID + '|' + MQTT_INSTANCE_ID
     password = 'RW|' + gen_mqtt_token(topic, device.device_id)
     data = {
-        'status_code': 200,
         'device_id': device.device_id,
         'mqtt_broker_url': MQTT_BROKER_URL,
         'mqtt_port': 1883,
@@ -69,7 +68,7 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
         'get_topic': topic + f'/{device.device_id}/get',
         'post_topic': topic + f'/{device.device_id}/post',
     }
-    return data
+    return res_json(data)
 
 
 @router.post('/auth-mqtt/token')
@@ -80,15 +79,15 @@ def auth_token(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuthToken:
     device = Device.get(db, req_auth.device_id)
     device_token = DeviceToken.get(db, req_auth.device_id, req_auth.device_token)
     if not device:
-        raise HTTPException(status_code=404, detail="设备不存在")
+        return res_err(ERRCODES.DEVICE_NOT_FOUND)
     if not device_token or device_token.expired:
-        raise HTTPException(status_code=403, detail="设备 token 错误")
+        return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
 
     topic = 'soundbox'
     data = {
         'mqtt_token': gen_mqtt_token(topic, device.device_id),
     }
-    return data
+    return res_json(data)
 
 
 async def async_function(device_id: str, token: str, request: Request, db):
@@ -124,7 +123,5 @@ async def async_function(device_id: str, token: str, request: Request, db):
 def audio_upload(device_id: str, device_token: str, request: Request, db = Depends(get_db)):
     authed = asyncio.run(async_function(device_id, device_token, request, db))  # 在同步函数中运行异步函数
     if not authed:
-        raise HTTPException(status_code=403, detail="设备 token 错误")
-    return {
-        'status_code': 200,
-    }
+        return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
+    return res_json()
