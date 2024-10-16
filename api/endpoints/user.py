@@ -14,7 +14,7 @@ router = APIRouter()
 
 class UserResSub(BaseModel):
     email: str
-    nickname: str
+    username: str
 
 class UserRes(BaseModel):
     code: int
@@ -23,7 +23,7 @@ class UserRes(BaseModel):
 
 
 class UserInfo(BaseModel):
-    nickname: Optional[str] = None
+    username: Optional[str] = None
     password: Optional[str] = None
     email: Optional[str] = None
 
@@ -41,7 +41,7 @@ def user_info(user: User = Depends(get_current_user)) -> UserRes:
     """
     return res_json({
         'email': user.email,
-        'nickname': user.nickname,
+        'username': user.username,
     })
 
 
@@ -51,8 +51,8 @@ def user_info(user_info: UserInfo, user: User = Depends(get_current_user), db = 
     修改用户信息
     """
     password = user_info.password
-    nickname = user_info.nickname
-    user.update(db, nickname=nickname, password=password)
+    username = user_info.username
+    user.update(db, username=username, password=password)
     if user.phone_number:
         res_user = User.get(db, user.phone_number)
     elif user.email:
@@ -61,7 +61,7 @@ def user_info(user_info: UserInfo, user: User = Depends(get_current_user), db = 
         return res_err(ERRCODES.USER_NOT_FOUND)
     return res_json({
         'phone_number': user.email,
-        'nickname': user.nickname,
+        'username': user.username,
     })
 
 

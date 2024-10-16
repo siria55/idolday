@@ -23,7 +23,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     phone_number = Column(String, index=True)
     email = Column(String, default='')
-    nickname = Column(String, default='')
+    username = Column(String, default='')
     password_hash = Column(String, default='')
     created_at = Column(DateTime, default=datetime.now)
 
@@ -36,18 +36,18 @@ class User(Base):
         return user
 
     @classmethod
-    def create(cls, db, phone_number='', email='', nickname='', password_hash=''):
+    def create(cls, db, phone_number='', email='', username='', password_hash=''):
         if phone_number == '' and email == '':
             raise ValueError('phone_number and email cannot be empty at the same time')
-        user = cls(phone_number=phone_number, email=email, nickname=nickname, password_hash=password_hash)
+        user = cls(phone_number=phone_number, email=email, username=username, password_hash=password_hash)
         db.add(user)
         db.commit()
         return user
 
-    def update(self, db, nickname=None, password=None):
+    def update(self, db, username=None, password=None):
         self = db.merge(self)
-        if nickname:
-            self.nickname = nickname
+        if username:
+            self.username = username
         if password:
             self.password_hash = hash_password(password)
         db.commit()

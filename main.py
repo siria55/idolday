@@ -1,12 +1,10 @@
-import os
 import threading
-import json
+import uvicorn
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exceptions import RequestValidationError, HTTPException
-from fastapi.responses import PlainTextResponse, JSONResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -60,3 +58,7 @@ async def startup_event():
     mqtt_thread = threading.Thread(target=mqtt_listener_run)
     mqtt_thread.start()
     print('mqtt_thread started')
+
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host="0.0.0.0", port=8001, reload=True)

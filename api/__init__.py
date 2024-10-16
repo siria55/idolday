@@ -1,8 +1,10 @@
 import jwt
 import hmac
+import re
 import json
 import requests
 from typing import Optional
+from pydantic import BaseModel
 
 from fastapi import HTTPException, Header, Depends, Form, Cookie
 from fastapi.responses import JSONResponse
@@ -12,6 +14,7 @@ from models.user import User
 
 
 SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
+
 
 class ErrorCodes:
     def __init__(self, file_path=None):
@@ -32,6 +35,14 @@ class ErrorCodes:
 
 ERRCODES = ErrorCodes('return_code.json')
 
+
+class BareRes(BaseModel):
+    code: int
+    message: str
+    data: dict
+
+
+
 def verify_hcaptcha(hcaptcha_response: str = Form(...)):
     data = {
         'secret': SECRET_KEY,
@@ -45,6 +56,13 @@ def verify_hcaptcha(hcaptcha_response: str = Form(...)):
     else:
         print('captcha err = ', result)
         return False
+
+
+def is_valid_email(email: str):
+    regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
+    if re.match(regex, email):
+        return True
+    return False
 
 
 captcha_id = 'b1abf91a4945df22d8221725d3b84fec'
