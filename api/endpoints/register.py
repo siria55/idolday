@@ -37,11 +37,12 @@ class ReqRegisterVerifyCode(BaseModel):
     username: str
     password: str
 
-class ResToken(BaseModel):
+class DataToken(BaseModel):
     token: str
+    user_id: int
 
 class ResRegisterVerifyCode(BareRes):
-    data: ResToken
+    data: DataToken
 
 
 @router.post('/register/verify_code')
@@ -58,6 +59,9 @@ def verify_code(req_register_verify_code: ReqRegisterVerifyCode, db = Depends(ge
     if origin_code != code:
         return res_err(ERRCODES.PHONE_VERIFY_CODE_ERROR)
 
-    User.create(db, phone_number, username=username, password_hash=hash_password(password))
+    user = User.create(db, phone_number, username=username, password_hash=hash_password(password))
     mc.delete(phone_number)
-    return res_json({'token': gen_token(phone_number)})
+    return res_json({
+        'token': gen_token(phone_number),
+        'user_id': user.id
+    })

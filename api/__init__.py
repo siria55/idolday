@@ -13,7 +13,7 @@ from database import get_db
 from models.user import User
 
 
-SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
+HCAPTCHA_SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
 
 
 class ErrorCodes:
@@ -45,7 +45,7 @@ class BareRes(BaseModel):
 
 def verify_hcaptcha(hcaptcha_response: str = Form(...)):
     data = {
-        'secret': SECRET_KEY,
+        'secret': HCAPTCHA_SECRET_KEY,
         'response': hcaptcha_response
     }
     response = requests.post('https://hcaptcha.com/siteverify', data=data)

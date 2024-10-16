@@ -52,7 +52,7 @@
   },
   "NO_AUTH_TO_DEVICE": {
     "code": 20005,
-    "message": "没有权限操作该设备"
+    "message": "对设备无权限"
   },
   "DEVICE_TOKEN_ERROR": {
     "code": 20006,

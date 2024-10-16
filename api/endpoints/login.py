@@ -13,11 +13,12 @@ from memcached import mc
 router = APIRouter()
 
 
-class ResToken(BaseModel):
+class DataToken(BaseModel):
     token: str
+    user_id: int
 
 class ResLogin(BareRes):
-    data: ResToken
+    data: DataToken
 
 
 class ReqLogin(BaseModel):
@@ -70,7 +71,10 @@ def login(req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
         return res_err(ERRCODES.USER_PASSWORD_ERROR)
 
     token = gen_token(email)
-    res = res_json({'token': token})
+    res = res_json({
+        'token': token,
+        'user_id': user.id
+    })
     res.set_cookie(key='session', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return res
 
@@ -142,7 +146,8 @@ def login_verify_code(login_verify_code: ReqLoginVerifyCode, db = Depends(get_db
         origin_code = mc.get(email, default='')
         if origin_code != code:
             return res_err(ERRCODES.EMAIL_VERIFY_CODE_ERROR)
-        if not User.get(db, email=email):
+        user = User.get(db, email=email)
+        if not user:
             return res_err(ERRCODES.USER_NOT_FOUND)
 
         mc.delete(email)
@@ -151,7 +156,8 @@ def login_verify_code(login_verify_code: ReqLoginVerifyCode, db = Depends(get_db
         origin_code = mc.get(phone_number, default='')
         if origin_code != code:
             return res_err(ERRCODES.PHONE_VERIFY_CODE_ERROR)
-        if not User.get(db, phone_number=phone_number):
+        user = User.get(db, phone_number=phone_number)
+        if not user:
             return res_err(ERRCODES.USER_NOT_FOUND)
 
         mc.delete(phone_number)
@@ -160,7 +166,8 @@ def login_verify_code(login_verify_code: ReqLoginVerifyCode, db = Depends(get_db
         return res_err(ERRCODES.PARAM_ERROR)
 
     content = {
-        'token': token
+        'token': token,
+        'user_id': user.id
     }
     res = res_json(content)
     res.set_cookie(key="session", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
