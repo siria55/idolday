@@ -21,22 +21,8 @@ class ResLogin(BareRes):
 
 
 class ReqLogin(BaseModel):
-    phone_number: Optional[str] = None
-    email: Optional[str] = None
-    username: Optional[str] = None
+    login_input: str
     password: str
-
-    @field_validator('email')
-    def validate_email(cls, v):
-        if not is_valid_email(v):
-            raise ValueError('请输入正确的邮箱')
-        return v
-
-    @field_validator('phone_number')
-    def validate_phone_number(cls, v):
-        if len(v) != 11:
-            raise ValueError('请输入正确的手机号')
-        return v
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -50,21 +36,17 @@ def login(req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
     """
     username/email/phone_number 三选一 + 密码 登录，会返回 token
     """
-    phone_number = req_login.phone_number
-    email = req_login.email
-    username = req_login.username
+    login_input = req_login.login_input
     password = req_login.password
-
-    if email:
-        user = User.get(db, email=email)
-    elif phone_number:
-        user = User.get(db, phone_number=phone_number)
-    elif username:
-        user = User.get(db, username=username)
-    else:
-        return res_err(ERRCODES.PARAM_ERROR)
+    
+    user = User.get(db, username=login_input)
+    if not user:
+        user = User.get(db, email=login_input)
+    if not user:
+        user = User.get(db, phone_number=login_input)
     if not user:
         return res_err(ERRCODES.USER_NOT_FOUND)
+
     if not user.verify_password(password):
         return res_err(ERRCODES.USER_PASSWORD_ERROR)
 
