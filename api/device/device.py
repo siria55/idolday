@@ -117,19 +117,23 @@ async def async_function(device_id: str, token: str, request: Request, db):
 
         device = Device.get(db, device_id)
         device_token = DeviceToken.get(db, device_id, token)
+        print('1')
         if not device:
+            print('222')
             return False
         if not device_token or device_token.expired:
+            print('333')
             return False
         authed = True
+        return authed
 
     def send_stream():
         # 使用流式传输，将队列中的数据发送到服务器
         try:
             response = requests.post(
-                'http://example.com/upload', 
+                'http://example.com/upload',
                 data=stream_data(data_queue),  # 使用生成器作为data参数
-                headers={'Content-Type': 'application/octet-stream'},  # 根据需要调整
+                headers={'Content-Type': content_type},  # 根据需要调整
                 stream=True  # 表明是流式请求
             )
             print(f"Data sent. Response status: {response.status_code}")
@@ -149,10 +153,15 @@ async def async_function(device_id: str, token: str, request: Request, db):
                 return False
 
     data_queue.put(None)  # 放入None，表示结束
+    import time
+    time = int(time.time())
+    with open(f'static/tmp/{time}.opus', 'wb') as f:
+        f.write(body)
     print('full body = ', body)
+    return True
 
 
-@router.post('/audio_upload')
+@router.post('/firmware/audio_upload')
 def audio_upload(device_id: str, device_token: str, request: Request, db = Depends(get_db)) -> BareRes:
     authed = asyncio.run(async_function(device_id, device_token, request, db))  # 在同步函数中运行异步函数
     if not authed:
