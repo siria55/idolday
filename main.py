@@ -3,9 +3,10 @@ import uvicorn
 import os
 
 from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError, HTTPException
-from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -77,6 +78,24 @@ scheduler.add_job(gen_voice_token, 'interval', seconds=60 * 60 * 10)
 #     mqtt_thread = threading.Thread(target=mqtt_listener_run)
 #     mqtt_thread.start()
 #     print('mqtt_thread started')
+
+from fastapi.templating import Jinja2Templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+@app.get("/static", response_class=HTMLResponse)
+def list_files(request: Request):
+
+    files = os.listdir("./static")
+    files_paths = sorted([f"{request.url._url}/{f}" for f in files])
+    print(files_paths)
+    return templates.TemplateResponse(
+        "list_files.html", {"request": request, "files": files_paths}
+    )
+
+from starlette.testclient import TestClient
+def test_app():
+    client = TestClient(app)
+    client.post("/api/v1/user/login", json={"username": "foo", "password": "bar"})
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host="0.0.0.0", port=8001, reload=True)
