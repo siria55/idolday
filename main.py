@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -46,6 +47,7 @@ def validation_exception_handler(request, exc):
     return JSONResponse(content=res)
 
 app.include_router(api_router, prefix="/api/v1")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 scheduler = AsyncIOScheduler()
 gen_voice_token()

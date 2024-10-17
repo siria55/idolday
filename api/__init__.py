@@ -164,3 +164,10 @@ def res_json(data={}):
         'data': data
     }
     return JSONResponse(status_code=200, content=res)
+
+# 必须包含大小写字母和数字，长度>=8
+pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$'
+def is_valid_password(password: str):
+    if re.match(pattern, password):
+        return True
+    return False

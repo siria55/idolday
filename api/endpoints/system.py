@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter
 
-from api import res_json, BareRes, BaseModel
+from api import res_json, BareRes, BaseModel, pattern
 
 
 router = APIRouter()
@@ -30,10 +30,25 @@ class DataUserAvatars(BaseModel):
 class ResUserAvatars(BareRes):
     data: DataUserAvatars
 
-@router.get('/system/user_avatars')
+@router.get('/system/user/avatars')
 def user_avatars() -> ResUserAvatars:
     return res_json([
         {
             'url': 'https://cdn.jsdelivr.net/gh/avataaars/avataaars.svg',
         }
     ])
+
+class DataPasswordRule(BaseModel):
+    pattern: str
+    describe: str
+
+class ResPasswordRule(BareRes):
+    data: DataPasswordRule
+
+
+@router.get('/system/user/password_rule')
+def password_rule() -> ResPasswordRule:
+    return res_json({
+        'pattern': pattern,
+        'describe': '密码至少 8 位，包含大小写字母和数字',
+    })

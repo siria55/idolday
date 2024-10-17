@@ -4,7 +4,7 @@ from pydantic import field_validator, BaseModel
 from typing import Optional
 
 from database import get_db
-from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, is_valid_email, BareRes
+from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, is_valid_email, BareRes, is_valid_password
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
 from aliyun_services.email import send_email
@@ -41,9 +41,8 @@ class ReqLogin(BaseModel):
 
     @field_validator('password')
     def validate_password(cls, v):
-        # TODO 密码强度检验
-        if len(v) < 6:
-            raise ValueError('密码至少 6 位')
+        if not is_valid_password(v):
+            raise ValueError('密码至少 8 位，包含大小写字母和数字')
         return v
 
 
