@@ -252,30 +252,30 @@ async def create_file(request: Request, db = Depends(get_db)):
     
     NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
     if device_id in ['00004674224']:
-        NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio_evil'
+        NLP_SERVER_URL = 'https://nlp.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
     API_KEY = '2e5b3768d93c59a68553e2f70d2daa551231a451cbb64d8787a4139df9e8d62a'
     # auth = oss2.AuthV2(ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRET)
     # bucket = oss2.Bucket(auth, OSS_SERVICE_ENDPOINT, OSS_BUCKET_NAME)
     # oss_link = bucket.sign_url('GET', 'soundbox/'+voice_id, 3600 * 2, slash_safe=True)
-    # print('签名URL的地址为：', oss_link)
-    post_data = {
-        'device_id': device_id,
-        'user_id': '12321',
-        'oss_link': f'http://123.56.219.96:8001/static/tmp/{time}.opus',
-    }
-    headers = {
-        'X-API-KEY': API_KEY,
-    }
-    res = requests.post(NLP_SERVER_URL, json=post_data, headers=headers)
-    print('res.status_code = ', res.status_code)
-    data = res.json()
-    print('data = ', data)
-    if 'actions' not in data:
-        print('nlp err = ', data)
-        return
-    actions = data['actions']
-    from mqtt.mqtt_listener import client
-    client.publish(f'soundbox/{device_id}/get', msgpack.packb(actions))
+    # # print('签名URL的地址为：', oss_link)
+    # post_data = {
+    #     'device_id': device_id,
+    #     'user_id': '12321',
+    #     'oss_link': f'http://123.56.219.96:8001/static/tmp/{time}.opus',
+    # }
+    # headers = {
+    #     'X-API-KEY': API_KEY,
+    # }
+    # res = requests.post(NLP_SERVER_URL, json=post_data, headers=headers)
+    # print('res.status_code = ', res.status_code)
+    # # data = res.json()
+    # print('data = ', data)
+    # if 'actions' not in data:
+    #     print('nlp err = ', data)
+    #     return
+    # actions = data['actions']
+    # from mqtt.mqtt_listener import client
+    # client.publish(f'soundbox/{device_id}/get', msgpack.packb(actions))
     return res_json()
 
 
