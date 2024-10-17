@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter
 
-from api import res_json, BareRes, BaseModel, pattern
+from api import res_json, BareRes, BaseModel, pattern, STATIC_AVATARS
 
 
 router = APIRouter()
@@ -22,6 +22,7 @@ def switches() -> ResSwitches:
 
 class DataUserAvatar(BaseModel):
     url: str
+    avatar_name: str
 
 
 class DataUserAvatars(BaseModel):
@@ -32,11 +33,12 @@ class ResUserAvatars(BareRes):
 
 @router.get('/system/user/avatars')
 def user_avatars() -> ResUserAvatars:
-    return res_json([
-        {
-            'url': 'https://cdn.jsdelivr.net/gh/avataaars/avataaars.svg',
-        }
-    ])
+    res = [{
+        'url': f'/static/avatar/{avatar}',
+        'avatar_name': avatar.split('.')[0],
+    } for avatar in STATIC_AVATARS]
+
+    return res_json(res)
 
 class DataPasswordRule(BaseModel):
     pattern: str

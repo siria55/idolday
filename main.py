@@ -1,9 +1,10 @@
 import threading
 import uvicorn
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -31,11 +32,15 @@ def validation_exception_handler(request, exc):
     errs = exc.errors()
     
     if errs and 'type' in errs[0]:
-        print('11111')
         print('errs[0] = ', errs[0])
+        msg = errs[0]['msg']
+        if ',' in msg:
+            msg = msg.split(',')[1].strip()
+        else:
+            msg = str(errs[0]['loc']) + ' ' + msg
         res = {
             'code': 4000,
-            'message': '参数错误',
+            'message': msg,
             'data': {}
         }
     else:
@@ -45,6 +50,18 @@ def validation_exception_handler(request, exc):
             'data': {}
         }
     return JSONResponse(content=res)
+
+@app.exception_handler(HTTPException)
+def http_exception_handler(request, exc):
+    if exc.status_code == 401:
+        res = {
+            'code': 10000,
+            'message': '认证失败，请重新登录',
+            'data': {}
+        }
+        print('in http_exception_handler')
+        return JSONResponse(content=res)
+    raise exc
 
 app.include_router(api_router, prefix="/api/v1")
 app.mount("/static", StaticFiles(directory="static"), name="static")

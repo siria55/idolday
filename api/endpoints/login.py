@@ -4,7 +4,7 @@ from pydantic import field_validator, BaseModel
 from typing import Optional
 
 from database import get_db
-from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, is_valid_email, BareRes, is_valid_password
+from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, is_valid_email, BareRes, is_valid_password, COOKIE_SECURE
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
 from aliyun_services.email import send_email
@@ -15,7 +15,6 @@ router = APIRouter()
 
 class DataToken(BaseModel):
     token: str
-    user_id: int
 
 class ResLogin(BareRes):
     data: DataToken
@@ -69,12 +68,11 @@ def login(req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
     if not user.verify_password(password):
         return res_err(ERRCODES.USER_PASSWORD_ERROR)
 
-    token = gen_token(email)
+    token = gen_token(user.id)
     res = res_json({
         'token': token,
-        'user_id': user.id
     })
-    res.set_cookie(key='session', value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
+    res.set_cookie(key='token', value=token, secure=COOKIE_SECURE, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return res
 
 
@@ -150,7 +148,7 @@ def login_verify_code(login_verify_code: ReqLoginVerifyCode, db = Depends(get_db
             return res_err(ERRCODES.USER_NOT_FOUND)
 
         mc.delete(email)
-        token = gen_token(email)
+        token = gen_token(user.id)
     elif phone_number:
         origin_code = mc.get(phone_number, default='')
         if origin_code != code:
@@ -160,14 +158,13 @@ def login_verify_code(login_verify_code: ReqLoginVerifyCode, db = Depends(get_db
             return res_err(ERRCODES.USER_NOT_FOUND)
 
         mc.delete(phone_number)
-        token = gen_token(phone_number)
+        token = gen_token(user.id)
     else:
         return res_err(ERRCODES.PARAM_ERROR)
 
     content = {
         'token': token,
-        'user_id': user.id
     }
     res = res_json(content)
-    res.set_cookie(key="session", value=token, secure=True, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
+    res.set_cookie(key="token", value=token, secure=COOKIE_SECURE, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
     return res

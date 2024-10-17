@@ -86,6 +86,7 @@ def device_token_gen(device_id: str, current_user: User = Depends(get_current_us
         return res_err(ERRCODES.DEVICE_NOT_FOUND)
     if device.user_id != current_user.id:
         return res_err(ERRCODES.NO_AUTH_TO_DEVICE)
+    device.remove_tokens(db)
     device_token = DeviceToken.create(db, device.device_id)
     return res_json({
         'device_id': device.device_id,

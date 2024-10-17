@@ -9,4 +9,4 @@ api_router.include_router(login.router, tags=["Login"])
 api_router.include_router(register.router, tags=["Register"])
 api_router.include_router(system.router, tags=["System"])
 
-api_router.include_router(device_router, tags=["Device | 固件接口，网页客户端不用看"])
+api_router.include_router(device_router, tags=["Device | 固件接口"])

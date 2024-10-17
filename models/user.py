@@ -26,13 +26,22 @@ class User(Base):
     username = Column(String, default='')
     password_hash = Column(String, default='')
     created_at = Column(DateTime, default=datetime.now)
-
+    avatar_name = Column(String, default='persimmon')
+    
     @classmethod
-    def get(cls, db, phone_number=None, email=None):
-        if phone_number is not None:
+    def get(cls, db, id=None, phone_number=None, email=None, username=None):
+        if id is not None:
+            user = db.query(cls).filter(cls.id == id).first()
+        elif phone_number is not None:
+            print('111')
             user = db.query(cls).filter(cls.phone_number == phone_number).first()
+            print('user22= ', user)
         elif email is not None:
             user = db.query(cls).filter(cls.email == email).first()
+        elif username is not None:
+            user = db.query(cls).filter(cls.username == username).first()
+        else:
+            return None
         return user
 
     @classmethod
@@ -44,12 +53,22 @@ class User(Base):
         db.commit()
         return user
 
-    def update(self, db, username=None, password=None):
+    @property
+    def avatar_url(self):
+        return '/static/avatar/' + self.avatar_name + '.png'
+
+    def update(self, db, username=None, password=None, avatar_name=None, email=None, phone_number=None):
         self = db.merge(self)
         if username:
             self.username = username
         if password:
             self.password_hash = hash_password(password)
+        if avatar_name:
+            self.avatar_name = avatar_name
+        if email:
+            self.email = email
+        if phone_number:
+            self.phone_number = phone_number
         db.commit()
         db.refresh(self)
 

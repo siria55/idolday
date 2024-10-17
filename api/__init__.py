@@ -1,20 +1,22 @@
 import jwt
 import hmac
 import re
+import os
 import json
 import requests
 from typing import Optional
-from pydantic import BaseModel
 
-from fastapi import HTTPException, Header, Depends, Form, Cookie
+from pydantic import BaseModel
+from fastapi import Header, Depends, Form, Cookie
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 
 from database import get_db
 from models.user import User
 
 
 HCAPTCHA_SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
-
+COOKIE_SECURE = False
 
 class ErrorCodes:
     def __init__(self, file_path=None):
@@ -41,9 +43,14 @@ class BareRes(BaseModel):
     message: str
     data: dict
 
+def build_static_avatars():
+    avatars = os.listdir('static/avatar')
+    return avatars
+STATIC_AVATARS = build_static_avatars()
 
 
 def verify_hcaptcha(hcaptcha_response: str = Form(...)):
+    return True
     data = {
         'secret': HCAPTCHA_SECRET_KEY,
         'response': hcaptcha_response
@@ -108,45 +115,35 @@ def captcha_geetest(params):
         return False
 
 
-def check_session(session: Optional[str] = Cookie(None), db = Depends(get_db)):
-    if session is None:
-        return res_err(ERRCODES.USER_NOT_FOUND)
-    print('session = ', session)
-    return session
 
-
-def get_current_user(Authorization: str = Header(None), session: Optional[str] = Cookie(None), db = Depends(get_db)):  # 使用Header依赖提取token
+def get_current_user(Authorization: str = Header(None), token: Optional[str] = Cookie(None), db = Depends(get_db)) -> User:
+    print('tokentoken = ', token)
     if Authorization and Authorization.startswith("Bearer "):
-        token = Authorization.split(" ")[1]
+        res_token = Authorization.split(" ")[1]
+    elif token:
+        res_token = token
     else:
-        token = check_session(session, db)
+        raise HTTPException(status_code=401)
 
     try:
-        phone_number_or_email = decode_token(token)
-        print('phone_number_or_email = decode_token(token):', phone_number_or_email)
+        user_id = decode_token(res_token)
+        print('user_id = ', user_id)
+        user = User.get(db, id=user_id)
+        print('user = ', user)
     except Exception as e:
-        return res_err(ERRCODES.USER_NOT_FOUND)
-    if not phone_number_or_email:
-        return res_err(ERRCODES.USER_NOT_FOUND)
-
-    if '@' in phone_number_or_email:
-        user = User.get(db, email=phone_number_or_email)
-    else:
-        user = User.get(db, phone_number=phone_number_or_email)
+        raise HTTPException(status_code=401)
     if not user:
-        return res_err(ERRCODES.USER_NOT_FOUND)
-    print('user 111 email = ', user.email)
-    return user  # 实际场景中这里可能返回解析token得到的用户信息
+        raise HTTPException(status_code=401)
+    return user
 
 
-def gen_token(phone_number_or_email):
-    print(' gen token phone_number_or_email:', phone_number_or_email)
-    encoded_jwt = jwt.encode({"phone_number_or_email": phone_number_or_email}, "secret", algorithm="HS256")
+def gen_token(user_id):
+    encoded_jwt = jwt.encode({"user_id": user_id}, "secret", algorithm="HS256")
     return encoded_jwt
 
 
 def decode_token(token):
-    return jwt.decode(token, "secret", algorithms=["HS256"]).get('phone_number_or_email')
+    return jwt.decode(token, "secret", algorithms=["HS256"]).get('user_id')
 
 
 def res_err(err_codes):

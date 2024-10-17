@@ -1,10 +1,7 @@
-import hmac
-import base64
-from hashlib import sha1
 import asyncio
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, field_validator
+from fastapi import APIRouter, Depends, Request
+from pydantic import BaseModel
 from typing import Optional
 
 from database import get_db
@@ -17,7 +14,7 @@ from aliyun_services.configs import (ALIBABA_CLOUD_ACCESS_KEY_ID,
 router = APIRouter()
 
 
-class ResAuth(BaseModel):
+class DataAuth(BaseModel):
     status_code: int
     device_id: str
     mqtt_client_id: str
@@ -29,8 +26,8 @@ class ResAuth(BaseModel):
     post_topic: str
 
 
-class ResAuthToken(BaseModel):
-    mqtt_token: str
+class ResAuth(BaseModel):
+    data: DataAuth
 
 
 class ReqAuth(BaseModel):
@@ -39,7 +36,7 @@ class ReqAuth(BaseModel):
     firmware_version: Optional[str] = None
 
 
-@router.post('/auth-mqtt')
+@router.post('/firmware/auth_mqtt')
 def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
     """
     设备认证
@@ -71,7 +68,15 @@ def auth(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuth:
     return res_json(data)
 
 
-@router.post('/auth-mqtt/token')
+class DataAuthToken(BaseModel):
+    mqtt_token: str
+
+
+class ResAuthToken(BaseModel):
+    data: DataAuthToken
+
+
+@router.post('/firmware/auth_mqtt/token')
 def auth_token(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuthToken:
     """
     设备认证

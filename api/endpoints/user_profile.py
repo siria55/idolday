@@ -17,13 +17,14 @@ class DataUserProfile(BaseModel):
     email: str
     username: str
     phone_number: str
+    avatar_url: str
 
 class ResUserProfile(BareRes):
     data: DataUserProfile
 
 
 @router.get('/profile')
-def user_profile(user: User = Depends(get_current_user)) -> ResUserProfile:
+def user_profile(user = Depends(get_current_user)) -> ResUserProfile:
     """
     获取用户基础信息
     """
@@ -31,12 +32,14 @@ def user_profile(user: User = Depends(get_current_user)) -> ResUserProfile:
         'email': user.email,
         'username': user.username,
         'phone_number': user.phone_number,
+        'avatar_url': user.avatar_url,
     })
 
 class UserInfo(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     email: Optional[str] = None
+    avatar_name: Optional[str] = None
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -46,30 +49,36 @@ class UserInfo(BaseModel):
 
 
 @router.post('/profile')
-def user_profile(user_info: UserInfo, user: User = Depends(get_current_user), db = Depends(get_db)) -> ResUserProfile:
+def user_profile(user_info: UserInfo, user = Depends(get_current_user), db = Depends(get_db)) -> ResUserProfile:
     """
     修改用户信息
     """
     password = user_info.password
     username = user_info.username
-    user.update(db, username=username, password=password)
-    if user.phone_number:
-        updated_user = User.get(db, user.phone_number)
-    elif user.email:
-        updated_user = User.get(db, email=user.email)
-    else:
+    avatar_name = user_info.avatar_name
+    if User.get(db, username=username):
+        return res_err(ERRCODES.USERNAME_ALREADY_EXISTS)
+    if avatar_name not in ['persimmon', 'cactus', 'goat', 'robot']:
+        return res_err(ERRCODES.PARAM_ERROR)
+
+    user.update(db, username=username, password=password, avatar_name=avatar_name)
+    print('user.phone_number = ', user.phone_number)
+    print('type = ', type(user.phone_number))
+    updated_user = User.get(db, phone_number=user.phone_number)
+    if not updated_user:
         return res_err(ERRCODES.USER_NOT_FOUND)
     return res_json({
         'email': updated_user.email,
         'phone_number': updated_user.phone_number,
         'username': updated_user.username,
+        'avatar_url': updated_user.avatar_url,
     })
 
 
 class ReqProfileSendCode(BaseModel):
     email: Optional[str] = None
     phone_number: Optional[str] = None
-    hcaptcha_response: str
+    hcaptcha_response: Optional[str] = None
 
     @field_validator('email')
     def validate_email(cls, v):
@@ -96,10 +105,10 @@ def profile_send_code(req_profile_send_code: ReqProfileSendCode, user: User = De
     if not verify_hcaptcha(hcaptcha_response):
         return res_err(ERRCODES.CAPTCHA_ERROR)
 
-    if email and not User.get(db, email=email):
-        return res_err(ERRCODES.USER_NOT_FOUND)
-    elif phone_number and not User.get(db, phone_number=phone_number):
-        return res_err(ERRCODES.USER_NOT_FOUND)
+    if email and User.get(db, email=email):
+        return res_err(ERRCODES.EMAIL_ALREADY_EXISTS)
+    elif phone_number and User.get(db, phone_number=phone_number):
+        return res_err(ERRCODES.PHONE_ALREADY_EXISTS)
 
     code = generate_verification_code()
     if email:
@@ -154,7 +163,7 @@ def profile_verify_code(req_profile_verify_code: ReqProfileVerifyCode, user: Use
         return res_err(ERRCODES.PARAM_ERROR)
 
     if user.phone_number:
-        updated_user = User.get(db, user.phone_number)
+        updated_user = User.get(db, phone_number=user.phone_number)
     elif user.email:
         updated_user = User.get(db, email=user.email)
     else:

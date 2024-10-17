@@ -12,7 +12,10 @@
     "message": "其他错误"
   },
 
-
+  "AUTH_ERROR": {
+    "code": 10000,
+    "message": "认证失败，请重新登录"
+  },
   "USER_NOT_FOUND": {
     "code": 10001,
     "message": "用户不存在"
@@ -40,6 +43,10 @@
   "EMAIL_ALREADY_EXISTS": {
     "code": 10007,
     "message": "邮箱已存在"
+  },
+  "USERNAME_ALREADY_EXISTS": {
+    "code": 10008,
+    "message": "用户名已存在"
   },
 
   "DEVICE_ALREADY_EXISTS": {

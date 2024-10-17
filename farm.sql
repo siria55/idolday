@@ -4,7 +4,8 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL DEFAULT '',
     username VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    avatar_name VARCHAR(255) NOT NULL DEFAULT 'persimmon'  -- 之后存在 key:value 数据库中
 ) AUTO_INCREMENT=1000;
 
 CREATE TABLE devices (

@@ -1,9 +1,11 @@
+from typing import Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
 
 from database import get_db
-from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, BareRes
+from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, BareRes, is_valid_password, COOKIE_SECURE
 from models.user import User, hash_password
 
 from aliyun_services.sms import send_sms, generate_verification_code
@@ -13,7 +15,7 @@ router = APIRouter()
 
 class ReqRegisterSendCode(BaseModel):
     phone_number: str
-    hcaptcha_response: str
+    hcaptcha_response: Optional[str] = None
 
 
 @router.post('/register/send_code')
@@ -37,9 +39,21 @@ class ReqRegisterVerifyCode(BaseModel):
     username: str
     password: str
 
+    @field_validator('phone_number')
+    def validate_phone_number(cls, v):
+        if len(v) != 11:
+            raise ValueError('请输入正确的手机号')
+        return v
+    
+    @field_validator('password')
+    def validate_password(cls, v):
+        if not is_valid_password(v):
+            raise ValueError('密码至少 8 位，包含大小写字母和数字')
+        return v
+
+
 class DataToken(BaseModel):
     token: str
-    user_id: int
 
 class ResRegisterVerifyCode(BareRes):
     data: DataToken
@@ -58,10 +72,15 @@ def verify_code(req_register_verify_code: ReqRegisterVerifyCode, db = Depends(ge
 
     if origin_code != code:
         return res_err(ERRCODES.PHONE_VERIFY_CODE_ERROR)
+    if User.get(db, username=username) is not None:
+        return res_err(ERRCODES.USERNAME_ALREADY_EXISTS)
 
     user = User.create(db, phone_number, username=username, password_hash=hash_password(password))
     mc.delete(phone_number)
-    return res_json({
-        'token': gen_token(phone_number),
-        'user_id': user.id
-    })
+    token = gen_token(user.id)
+    content = {
+        'token': token,
+    }
+    res = res_json(content)
+    res.set_cookie(key="token", value=token, secure=COOKIE_SECURE, expires=60 * 60 * 24 * 7 * 30 * 12, samesite='none', httponly=True)
+    return res
