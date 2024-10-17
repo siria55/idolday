@@ -71,13 +71,13 @@ scheduler = AsyncIOScheduler()
 gen_voice_token()
 scheduler.add_job(gen_voice_token, 'interval', seconds=60 * 60 * 10)
 
-# 使用FastAPI的事件处理器启动MQTT客户端
-@app.on_event("startup")
-async def startup_event():
-    print('startup')
-    mqtt_thread = threading.Thread(target=mqtt_listener_run)
-    mqtt_thread.start()
-    print('mqtt_thread started')
+# # 使用FastAPI的事件处理器启动MQTT客户端
+# @app.on_event("startup")
+# async def startup_event():
+#     print('startup')
+#     mqtt_thread = threading.Thread(target=mqtt_listener_run)
+#     mqtt_thread.start()
+#     print('mqtt_thread started')
 
 # from fastapi.templating import Jinja2Templates
 # app.mount("/static", StaticFiles(directory="static"), name="static")
