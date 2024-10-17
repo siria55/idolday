@@ -143,24 +143,22 @@ async def async_function(device_id: str, token: str, request: Request, db):
 
     # # 启动线程用于发送数据
     # threading.Thread(target=send_stream, daemon=True).start()
-    print('222 ')
-    async for chunk in request.stream():
-        body += chunk
-        print('authed = ', authed)
-        if authed:
-            print('chunk = ', chunk)
-            data_queue.put(chunk)
-        else:
-            if not auth():
-                print('not auth')
-                return False
+
 
     data_queue.put(None)  # 放入None，表示结束
     import time
     time = int(time.time())
-    print('333333')
     with open(f'static/tmp/{time}.opus', 'wb') as f:
-        f.write(body)
+        async for chunk in request.stream():
+            body += chunk
+            if authed:
+                data_queue.put(chunk)
+                f.write(body)
+            else:
+                if not auth():
+                    print('not auth')
+                    return False
+        
     print('full body = ', body)
     return True
 
@@ -176,35 +174,33 @@ async def async_function(device_id: str, token: str, request: Request, db):
 #     if not authed:
 #         return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
 #     return res_json()
+from aliyun_services.configs import (ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRET,
+    OSS_BUCKET_NAME, OSS_SERVICE_ENDPOINT)
+import requests
+import oss2
+from datetime import datetime
+import time
+import msgpack
 
 @router.post("/firmware/audio_upload")
 async def create_file(request: Request, db = Depends(get_db)):
     body = b''
-    with open(f'123.opus', 'wb') as f:
-        async for chunk in request.stream():
-            f.write(chunk)
-    body = b''
     authed = True
     content_type = request.headers.get('Content-Type')
     data_queue = queue.Queue()
-    print('111111')
     device_id = request.headers.get('device_id')
     device_token = request.headers.get('device_token')
-    print('device_id = ', device_id)
-    print('device_token = ', device_token)
-    print('headers = ', request.headers)
     def auth():
         nonlocal authed
-
-        # device = Device.get(db, device_id)
-        # device_token = DeviceToken.get(db, device_id, token)
-        # print('1')
-        # if not device:
-        #     print('222')
-        #     return False
-        # if not device_token or device_token.expired:
-        #     print('333')
-        #     return False
+        device = Device.get(db, device_id)
+        device_token = DeviceToken.get(db, device_id, device_token)
+        print('1')
+        if not device:
+            print('222')
+            return False
+        if not device_token or device_token.expired:
+            print('333')
+            return False
         authed = True
         return authed
 
@@ -224,16 +220,16 @@ async def create_file(request: Request, db = Depends(get_db)):
     # # 启动线程用于发送数据
     # threading.Thread(target=send_stream, daemon=True).start()
     print('222 ')
-    async for chunk in request.stream():
-        body += chunk
-        print('authed = ', authed)
-        if authed:
-            print('chunk = ', chunk)
-            data_queue.put(chunk)
-        else:
-            if not auth():
-                print('not auth')
-                return False
+    # async for chunk in request.stream():
+    #     body += chunk
+    #     print('authed = ', authed)
+    #     if authed:
+    #         print('chunk = ', chunk)
+    #         data_queue.put(chunk)
+    #     else:
+    #         if not auth():
+    #             print('not auth')
+    #             return False
 
     data_queue.put(None)  # 放入None，表示结束
     import time
@@ -250,9 +246,36 @@ async def create_file(request: Request, db = Depends(get_db)):
                     return False
         f.write(body)
 
-    authed = asyncio.run(async_function(device_id, device_token, request, db))
+    # authed = asyncio.run(async_function(device_id, device_token, request, db))
     if not authed:
         return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
+    
+    NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
+    if device_id in ['00004674224']:
+        NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio_evil'
+    API_KEY = '2e5b3768d93c59a68553e2f70d2daa551231a451cbb64d8787a4139df9e8d62a'
+    # auth = oss2.AuthV2(ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRET)
+    # bucket = oss2.Bucket(auth, OSS_SERVICE_ENDPOINT, OSS_BUCKET_NAME)
+    # oss_link = bucket.sign_url('GET', 'soundbox/'+voice_id, 3600 * 2, slash_safe=True)
+    # print('签名URL的地址为：', oss_link)
+    post_data = {
+        'device_id': device_id,
+        'user_id': '12321',
+        'oss_link': f'http://123.56.219.96:8001/static/tmp/{time}.opus',
+    }
+    headers = {
+        'X-API-KEY': API_KEY,
+    }
+    res = requests.post(NLP_SERVER_URL, json=post_data, headers=headers)
+    print('res.status_code = ', res.status_code)
+    data = res.json()
+    print('data = ', data)
+    if 'actions' not in data:
+        print('nlp err = ', data)
+        return
+    actions = data['actions']
+    from mqtt.mqtt_listener import client
+    client.publish(f'soundbox/{device_id}/get', msgpack.packb(actions))
     return res_json()
 
 
