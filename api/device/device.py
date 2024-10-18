@@ -80,23 +80,23 @@ class ResAuthToken(BareRes):
     data: DataAuthToken
 
 
-# @router.post('/firmware/auth_mqtt/token')
-# def auth_token(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuthToken:
-#     """
-#     设备认证
-#     """
-#     device = Device.get(db, req_auth.device_id)
-#     device_token = DeviceToken.get(db, req_auth.device_id, req_auth.device_token)
-#     if not device:
-#         return res_err(ERRCODES.DEVICE_NOT_FOUND)
-#     if not device_token or device_token.expired:
-#         return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
+@router.post('/firmware/auth_mqtt/token')
+def auth_token(req_auth: ReqAuth, db = Depends(get_db)) -> ResAuthToken:
+    """
+    设备认证
+    """
+    device = Device.get(db, req_auth.device_id)
+    device_token = DeviceToken.get(db, req_auth.device_id, req_auth.device_token)
+    if not device:
+        return res_err(ERRCODES.DEVICE_NOT_FOUND)
+    if not device_token or device_token.expired:
+        return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
 
-#     topic = 'soundbox'
-#     data = {
-#         'mqtt_token': gen_mqtt_token(topic, device.device_id),
-#     }
-#     return res_json(data)
+    topic = 'soundbox'
+    data = {
+        'mqtt_token': gen_mqtt_token(topic, device.device_id),
+    }
+    return res_json(data)
 
 # # 发送流式数据到远程服务器的生成器
 # def stream_data(data_queue):
@@ -230,7 +230,7 @@ password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), c
 # password = 'w8plu9z0LSkl0zzuDJTeVTuI7jM='
 client.username_pw_set(userName, password)
 
-    
+
 @router.post("/firmware/audio_upload")
 async def create_file(request: Request, db = Depends(get_db)):
     body = b''

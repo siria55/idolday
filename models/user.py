@@ -43,6 +43,10 @@ class User(Base):
         else:
             return None
         return user
+    
+    @classmethod
+    def get_all(cls, db):
+        return db.query(cls).all()
 
     @classmethod
     def create(cls, db, phone_number='', email='', username='', password_hash=''):

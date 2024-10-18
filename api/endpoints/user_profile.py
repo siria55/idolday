@@ -141,7 +141,10 @@ class ReqProfileVerifyCode(BaseModel):
 
 
 @router.post('/profile/verify_code')
-def profile_verify_code(req_profile_verify_code: ReqProfileVerifyCode, user: User = Depends(get_current_user), db = Depends(get_db)) -> ResUserProfile:
+def profile_verify_code(
+    req_profile_verify_code: ReqProfileVerifyCode,
+    user: User = Depends(get_current_user),
+    db = Depends(get_db)) -> ResUserProfile:
     """
     验证码验证
     """

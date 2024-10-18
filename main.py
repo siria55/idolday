@@ -65,6 +65,7 @@ def http_exception_handler(request, exc):
     raise exc
 
 app.include_router(api_router, prefix="/api/v1")
+
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # scheduler = AsyncIOScheduler()

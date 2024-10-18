@@ -7,10 +7,10 @@ from api import res_json, BareRes, BaseModel, pattern, STATIC_AVATARS
 router = APIRouter()
 
 
-class DataSwitches(BareRes):
+class DataSwitches(BaseModel):
     use_captcha: bool
 
-class ResSwitches(BaseModel):
+class ResSwitches(BareRes):
     data: DataSwitches
 
 

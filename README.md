@@ -14,24 +14,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/bothub
-ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers=2
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-systemd /etc/systemd/system/fastapi_test.service
-```
-[Unit]
-Description=FastAPI Service Test
-After=network.target
-
-[Service]
-User=root
-Group=root
-WorkingDirectory=/root/bothub
-ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers=4
+ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers=5
 Restart=always
 
 [Install]
