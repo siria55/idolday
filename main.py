@@ -65,11 +65,11 @@ def http_exception_handler(request, exc):
     raise exc
 
 app.include_router(api_router, prefix="/api/v1")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
-scheduler = AsyncIOScheduler()
-gen_voice_token()
-scheduler.add_job(gen_voice_token, 'interval', seconds=60 * 60 * 10)
+# scheduler = AsyncIOScheduler()
+# gen_voice_token()
+# scheduler.add_job(gen_voice_token, 'interval', seconds=60 * 60 * 10)
 
 # # 使用FastAPI的事件处理器启动MQTT客户端
 # @app.on_event("startup")
@@ -98,4 +98,4 @@ scheduler.add_job(gen_voice_token, 'interval', seconds=60 * 60 * 10)
 #     client.post("/api/v1/user/login", json={"username": "foo", "password": "bar"})
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run('main:app', host="0.0.0.0", port=8000, workers=2)

@@ -14,7 +14,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/bothub
-ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers=2
 Restart=always
 
 [Install]
@@ -31,7 +31,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/bothub
-ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8001
+ExecStart=/root/bothub/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers=4
 Restart=always
 
 [Install]

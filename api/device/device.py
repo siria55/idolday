@@ -6,7 +6,8 @@ from typing import Optional
 import queue
 import requests
 import threading
-
+from time import time
+    
 from database import get_db
 from models.device import Device, DeviceToken
 from api import res_json, res_err, ERRCODES, BareRes
@@ -179,30 +180,68 @@ from aliyun_services.configs import (ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_
 import requests
 import oss2
 from datetime import datetime
-import time
 import msgpack
+import json
+import hmac
+from datetime import datetime
+# import time
+import base64
+import msgpack
+from hashlib import sha1
+import json
+from paho.mqtt.client import MQTT_LOG_INFO, MQTT_LOG_NOTICE, MQTT_LOG_WARNING, MQTT_LOG_ERR, MQTT_LOG_DEBUG
+from paho.mqtt.enums import CallbackAPIVersion
+import paho.mqtt.client as mqtt
+#!/usr/bin/env python
+#coding=utf-8
+import hmac
+from datetime import datetime
+import base64
+import msgpack
+from hashlib import sha1
+import json
+from paho.mqtt.client import MQTT_LOG_INFO, MQTT_LOG_NOTICE, MQTT_LOG_WARNING, MQTT_LOG_ERR, MQTT_LOG_DEBUG
+from paho.mqtt.enums import CallbackAPIVersion
+import paho.mqtt.client as mqtt
 
+
+from models.device import Device
+from database import get_db
+
+
+instanceId = "post-cn-lsk3uo7yv02"
+ALIBABA_CLOUD_ACCESS_KEY_ID = 'LTAI5tLQxLqhF7ywAw797nwj'
+ALIBABA_CLOUD_ACCESS_KEY_SECRET = 'XDS3TwzljwoCEdwf6AqkP9GiXe4cY5'
+groupId = 'GID_TOAI'
+
+#MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
+topic = 'soundbox'
+#MQTT 接入点域名，实例初始化之后从控制台获取
+brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
+
+#MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
+client_id=groupId+'@@@'+'server'
+#MQTT 接入点域名，实例初始化之后从控制台获取
+brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id, protocol=mqtt.MQTTv311, clean_session=True)
+userName ='Signature'+'|'+ALIBABA_CLOUD_ACCESS_KEY_ID+'|'+instanceId
+password = base64.b64encode(hmac.new(ALIBABA_CLOUD_ACCESS_KEY_SECRET.encode(), client_id.encode(), sha1).digest()).decode()
+# userName = 'Signature|LTAI5tLQxLqhF7ywAw797nwj|post-cn-lsk3uo7yv02'
+# password = 'w8plu9z0LSkl0zzuDJTeVTuI7jM='
+client.username_pw_set(userName, password)
+
+    
 @router.post("/firmware/audio_upload")
 async def create_file(request: Request, db = Depends(get_db)):
     body = b''
-    authed = True
-    content_type = request.headers.get('Content-Type')
-    data_queue = queue.Queue()
-    device_id = request.headers.get('device_id')
-    device_token = request.headers.get('device_token')
-    def auth():
-        nonlocal authed
-        device = Device.get(db, device_id)
-        device_token = DeviceToken.get(db, device_id, device_token)
-        print('1')
-        if not device:
-            print('222')
-            return False
-        if not device_token or device_token.expired:
-            print('333')
-            return False
-        authed = True
-        return authed
+    client.connect(brokerUrl)
+
+    # content_type = request.headers.get('Content-Type')
+    # data_queue = queue.Queue()
+    # device_id = request.headers.get('device_id')
+    # device_token = request.headers.get('device_token')
+    print('request.headers = ', request.headers)
+
 
     # def send_stream():
     #     # 使用流式传输，将队列中的数据发送到服务器
@@ -219,35 +258,53 @@ async def create_file(request: Request, db = Depends(get_db)):
 
     # # 启动线程用于发送数据
     # threading.Thread(target=send_stream, daemon=True).start()
-    print('222 ')
+    print('2222 ')
 
-    data_queue.put(None)  # 放入None，表示结束
-    import time
-    time = int(time.time())
-    print('333333')
-    with open(f'static/tmp/{time}.opus', 'wb') as f:
+    # data_queue.put(None)  # 放入None，表示结束
+
+    time_str = int(time())
+    print('2.5')
+
+    print('444')
+    separated = False
+    params = b''
+    device_id = ''
+    device_token = ''
+    device = None
+    authed = False
+    with open(f'/var/www/static.toaitoys.com/{time_str}.opus', 'wb') as f:
         async for chunk in request.stream():
-            body += chunk
-            if authed:
-                data_queue.put(chunk)
+            if not separated:
+                i = 0
+                while params[-1:] != b"}":
+                    params += chunk[i:i+1]
+                    i += 1
+                    separated = True
+                print(params)
+                print(i)
+                f.write(chunk[i:])
             else:
-                if not auth():
-                    print('not auth')
-                    return False
-        f.write(body)
+                f.write(chunk)
+            if not authed:
+                data = params.decode('utf-8')
+                params = json.loads(data)
+                device_id = params.get('device_id')
+                device_token = params.get('device_token')
+                device = Device.get(db, device_id)
+                device_token = DeviceToken.get(db, device_id, device_token)
+                if not device:
+                    return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
+                if not device_token or device_token.expired:
+                    return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
+                authed = True
 
-    # authed = asyncio.run(async_function(device_id, device_token, request, db))
-    if not authed:
-        return res_err(ERRCODES.DEVICE_TOKEN_ERROR)
-    
-    # NLP_SERVER_URL = 'https://testing.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
-    # if device_id in ['00004674224']:
+    print('separated = ', separated)
     NLP_SERVER_URL = 'https://nlp.toaitoys.com/api/SoundBoxPrototype/v1/process_audio'
     API_KEY = '2e5b3768d93c59a68553e2f70d2daa551231a451cbb64d8787a4139df9e8d62a'
     post_data = {
         'device_id': device_id,
-        'user_id': '1007',
-        'oss_link': f'http://123.56.219.96:8001/static/tmp/{time}.opus',
+        'user_id': device.user_id,
+        'oss_link': f'https://static.toaitoys.com/{time_str}.opus',
     }
     print('post_data = ', post_data)
     headers = {
@@ -255,12 +312,16 @@ async def create_file(request: Request, db = Depends(get_db)):
     }
     res = requests.post(NLP_SERVER_URL, json=post_data, headers=headers)
     print('res.status_code = ', res.status_code)
+    if res.status_code != 200:
+        return res_err(ERRCODES.UNKNOWN_ERROR)
     data = res.json()
     print('data = ', data)
     if 'actions' not in data:
         print('nlp err = ', data)
         return
     actions = data['actions']
-    from mqtt.mqtt_listener import client
+    print('device_id = ', device_id)
+    print('actions = ', actions)
+
     client.publish(f'soundbox/{device_id}/get', msgpack.packb(actions))
     return res_json()
