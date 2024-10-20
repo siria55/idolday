@@ -1,11 +1,11 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, field_validator
 
 
 from database import get_db
-from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, BareRes, is_valid_password, COOKIE_SECURE
+from api import gen_token, captcha_verify_tsec, res_err, res_json, ERRCODES, BareRes, is_valid_password, COOKIE_SECURE
 from models.user import User, hash_password
 
 from aliyun_services.sms import send_sms, generate_verification_code
@@ -15,14 +15,17 @@ router = APIRouter()
 
 class ReqRegisterSendCode(BaseModel):
     phone_number: str
-    hcaptcha_response: Optional[str] = None
+    captcha_ticket: Optional[str] = None
+    captcha_randstr: Optional[str] = None
 
 
 @router.post('/register/send_code')
-def send_code(req_register_send_code: ReqRegisterSendCode, db = Depends(get_db)) -> BareRes:
+def send_code(request: Request, req_register_send_code: ReqRegisterSendCode, db = Depends(get_db)) -> BareRes:
     phone_number = req_register_send_code.phone_number
-    hcapcha_response = req_register_send_code.hcaptcha_response
-    if not verify_hcaptcha(hcapcha_response):
+    captcha_ticket = req_register_send_code.captcha_ticket
+    captcha_randstr = req_register_send_code.captcha_randstr
+    user_ip = request.client.host
+    if not captcha_verify_tsec(captcha_ticket, captcha_randstr, user_ip):
         return res_err(ERRCODES.CAPTCHA_ERROR)
 
     if User.get(db, phone_number=phone_number) is not None:

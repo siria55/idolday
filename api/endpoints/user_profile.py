@@ -1,11 +1,11 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, field_validator
 from typing import Optional
 from memcached import mc
 
 from database import get_db
-from api import res_err, res_json, ERRCODES, get_current_user, is_valid_password, BareRes, BaseModel, verify_hcaptcha, is_valid_email
+from api import res_err, res_json, ERRCODES, get_current_user, is_valid_password, BareRes, BaseModel, captcha_verify_tsec, is_valid_email
 
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
@@ -78,7 +78,8 @@ def user_profile(user_info: UserInfo, user = Depends(get_current_user), db = Dep
 class ReqProfileSendCode(BaseModel):
     email: Optional[str] = None
     phone_number: Optional[str] = None
-    hcaptcha_response: Optional[str] = None
+    captcha_ticket: str
+    captcha_randstr: str
 
     @field_validator('email')
     def validate_email(cls, v):
@@ -94,15 +95,17 @@ class ReqProfileSendCode(BaseModel):
 
 
 @router.post('/profile/send_code')
-def profile_send_code(req_profile_send_code: ReqProfileSendCode, user: User = Depends(get_current_user), db = Depends(get_db)) -> BareRes:
+def profile_send_code(request: Request, req_profile_send_code: ReqProfileSendCode, user: User = Depends(get_current_user), db = Depends(get_db)) -> BareRes:
     """
     初次绑定邮箱 or 换绑手机/邮箱 发验证码
     """
     email = req_profile_send_code.email
     phone_number = req_profile_send_code.phone_number
-    hcaptcha_response = req_profile_send_code.hcaptcha_response
+    captcha_ticket = req_profile_send_code.captcha_ticket
+    captcha_randstr = req_profile_send_code.captcha_randstr
+    user_ip = request.client.host
 
-    if not verify_hcaptcha(hcaptcha_response):
+    if not captcha_verify_tsec(captcha_ticket, captcha_randstr, user_ip):
         return res_err(ERRCODES.CAPTCHA_ERROR)
 
     if email and User.get(db, email=email):

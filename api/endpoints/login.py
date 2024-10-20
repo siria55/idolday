@@ -1,10 +1,10 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import field_validator, BaseModel
 from typing import Optional
 
 from database import get_db
-from api import gen_token, verify_hcaptcha, res_err, res_json, ERRCODES, is_valid_email, BareRes, is_valid_password, COOKIE_SECURE
+from api import gen_token, captcha_verify_tsec, res_err, res_json, ERRCODES, is_valid_email, BareRes, is_valid_password, COOKIE_SECURE
 from models.user import User
 from aliyun_services.sms import send_sms, generate_verification_code
 from aliyun_services.email import send_email
@@ -23,6 +23,8 @@ class ResLogin(BareRes):
 class ReqLogin(BaseModel):
     login_input: str
     password: str
+    captcha_ticket: str
+    captcha_randstr: str
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -32,12 +34,18 @@ class ReqLogin(BaseModel):
 
 
 @router.post('/login')
-def login(req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
+def login(request: Request, req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
     """
     username/email/phone_number 三选一 + 密码 登录，会返回 token
     """
     login_input = req_login.login_input
     password = req_login.password
+    captcha_ticket = req_login.captcha_ticket
+    captcha_randstr = req_login.captcha_randstr
+    user_ip = request.client.host
+    print('user_ip = ', user_ip)
+    if not captcha_verify_tsec(captcha_ticket, captcha_randstr, user_ip):
+        return res_err(ERRCODES.CAPTCHA_ERROR)
     
     user = User.get(db, username=login_input)
     if not user:
@@ -61,7 +69,8 @@ def login(req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
 class ReqLoginSendCode(BaseModel):
     email: Optional[str] = None
     phone_number: Optional[str] = None
-    hcaptcha_response: Optional[str] = None
+    captcha_ticket: Optional[str] = None
+    captcha_randstr: Optional[str] = None
 
     @field_validator('email')
     def validate_email(cls, v):
@@ -71,12 +80,14 @@ class ReqLoginSendCode(BaseModel):
 
 
 @router.post('/login/send_code')
-def login_send_code(req_login_send_code: ReqLoginSendCode, db = Depends(get_db)) -> BareRes:
+def login_send_code(request: Request, req_login_send_code: ReqLoginSendCode, db = Depends(get_db)) -> BareRes:
     email = req_login_send_code.email
     phone_number = req_login_send_code.phone_number
-    hcaptcha_response = req_login_send_code.hcaptcha_response
+    captcha_ticket = req_login_send_code.captcha_ticket
+    captcha_randstr = req_login_send_code.captcha_randstr
+    user_ip = request.client.host
 
-    if not verify_hcaptcha(hcaptcha_response):
+    if not captcha_verify_tsec(captcha_ticket, captcha_randstr, user_ip):
         return res_err(ERRCODES.CAPTCHA_ERROR)
     
     if email and not User.get(db, email=email):

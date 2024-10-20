@@ -14,6 +14,12 @@ from fastapi.exceptions import HTTPException
 from database import get_db
 from models.user import User
 
+from tencentcloud.common.common_client import CommonClient
+from tencentcloud.common import credential
+from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+from tencentcloud.common.profile.client_profile import ClientProfile
+from tencentcloud.common.profile.http_profile import HttpProfile
+
 
 HCAPTCHA_SECRET_KEY = 'ES_defd5fe453324be08becb845f6b5cf1f'
 COOKIE_SECURE = False
@@ -62,6 +68,40 @@ def verify_hcaptcha(hcaptcha_response: str = Form(...)):
         return True
     else:
         print('captcha err = ', result)
+        return False
+
+SECRET_ID_TENCENT = 'AKIDcAh19556vZNOTUMFF8oFVWddVFoBORNA'
+SECRET_KEY_TENCENT = 'stv7iBTZU5byQURDrQ5h9OQK6e5UtOOW'
+def captcha_verify_tsec(captcha_ticket: str, captcha_randstr: str, user_ip: str):
+    try:
+        # 实例化一个认证对象，入参需要传入腾讯云账户 SecretId 和 SecretKey，此处还需注意密钥对的保密
+        # 代码泄露可能会导致 SecretId 和 SecretKey 泄露，并威胁账号下所有资源的安全性。以下代码示例仅供参考，建议采用更安全的方式来使用密钥，请参见：https://cloud.tencent.com/document/product/1278/85305
+        # 密钥可前往官网控制台 https://console.cloud.tencent.com/cam/capi 进行获取
+        cred = credential.Credential(SECRET_ID_TENCENT, SECRET_KEY_TENCENT)
+
+        httpProfile = HttpProfile()
+        httpProfile.endpoint = "captcha.tencentcloudapi.com"
+        clientProfile = ClientProfile()
+        clientProfile.httpProfile = httpProfile
+
+        params = {
+            'CaptchaType': 9,
+            'Ticket': captcha_ticket,
+            'UserIp': user_ip,
+            'Randstr': captcha_randstr,
+            'CaptchaAppId': 190256550,
+            'AppSecretKey': 'rofZxqPSFmofSEBa4wGflMVrc'
+        }
+        common_client = CommonClient("captcha", "2019-07-22", cred, "", profile=clientProfile)
+        res = common_client.call_json("DescribeCaptchaResult", params)
+        print('captcha res = ', res)
+        data = res.get('Response', {})
+        captcha_code = data.get('CaptchaCode', 0)
+        if captcha_code == 1:
+            return True
+        return False
+    except TencentCloudSDKException as err:
+        print('tencent captcha err = ', err)
         return False
 
 

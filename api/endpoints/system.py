@@ -7,18 +7,10 @@ from api import res_json, BareRes, BaseModel, pattern, STATIC_AVATARS
 router = APIRouter()
 
 
-class DataSwitches(BaseModel):
-    use_captcha: bool
-
-class ResSwitches(BareRes):
-    data: DataSwitches
-
-
 @router.get('/system/switches')
-def switches() -> ResSwitches:
-    return res_json({
-        'use_captcha': True
-    })
+def switches() -> BareRes:
+    return res_json()
+
 
 class DataUserAvatar(BaseModel):
     url: str
