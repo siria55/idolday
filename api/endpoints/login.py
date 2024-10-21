@@ -26,12 +26,6 @@ class ReqLogin(BaseModel):
     captcha_ticket: str
     captcha_randstr: str
 
-    @field_validator('password')
-    def validate_password(cls, v):
-        if not is_valid_password(v):
-            raise ValueError('密码至少 8 位，包含大小写字母和数字')
-        return v
-
 
 @router.post('/login')
 def login(request: Request, req_login: ReqLogin, db = Depends(get_db)) -> ResLogin:
@@ -53,10 +47,10 @@ def login(request: Request, req_login: ReqLogin, db = Depends(get_db)) -> ResLog
     if not user:
         user = User.get(db, phone_number=login_input)
     if not user:
-        return res_err(ERRCODES.USER_NOT_FOUND)
+        return res_err(ERRCODES.USER_LOGIN_ERROR)
 
     if not user.verify_password(password):
-        return res_err(ERRCODES.USER_PASSWORD_ERROR)
+        return res_err(ERRCODES.USER_LOGIN_ERROR)
 
     token = gen_token(user.id)
     res = res_json({
