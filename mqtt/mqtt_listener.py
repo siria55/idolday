@@ -23,7 +23,7 @@ ALIBABA_CLOUD_ACCESS_KEY_SECRET = 'XDS3TwzljwoCEdwf6AqkP9GiXe4cY5'
 groupId = 'GID_TOAI'
 
 #MQTT ClientID，由 GroupID 和后缀组成，需要保证全局唯一
-client_id=groupId+'@@@'+'server_test2'
+client_id=groupId+'@@@'+'server'
 topic = 'soundbox'
 #MQTT 接入点域名，实例初始化之后从控制台获取
 brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
@@ -43,21 +43,21 @@ def on_log(client, userdata, level, buf):
         head = 'DEBUG'
     else:
         head = level
-    print('%s: %s' % (head, buf))
+    # print('%s: %s' % (head, buf))
 
 
 def on_connect(client, userdata, flags, rc, ps):
 
-    print('Connected with result code ' + str(rc))
-    print('flags = %s' % flags)
-    print('userdata = %s' % userdata)
+    # print('Connected with result code ' + str(rc))
+    # print('flags = %s' % flags)
+    # print('userdata = %s' % userdata)
     client.subscribe(topic + '/#', 0)
 
 
 def on_message(client, userdata, msg):
     print('in message')
     print('msg.topic: ', msg.topic)
-    print('msg.payload: ', str(msg.payload))
+    print('msg.payload: ', msgpack.unpackb(msg.payload))
     if '/' not in msg.topic:
         print('invalid topic')
         return
@@ -77,42 +77,44 @@ def on_message(client, userdata, msg):
     print('method: ', method)
     # 客户端向服务器发送数据
     if method == 'post':
-        try:
-            body = msgpack.unpackb(msg.payload)
-            print('body: ', body)
-            command = body.get('command', '')
-            if command == 'request_upload':
-                time1 = time.time()
-                request_upload(client, device_id, topic)
-                time2 = time.time()
-                print('TIME 后端生成 oss link 时间: ', time2 - time1)
-            elif command == 'notify_upload':
-                print('notify_upload')
-                if 'voice_id' not in body:
-                    print('voice_id not found')
-                    return
-                voice_id = body.get('voice_id', '')
-                time1 = time.time()
-                process_nlp(client, device_id, topic, device.user_id, voice_id)
-                time2 = time.time()
-                print('TIME 生成 NLP 参数 + NLP 整个返回时间: ', time2 - time1)
-                # TODO nofiy upload to NLP server
+        pass
+        # try:
+        #     body = msgpack.unpackb(msg.payload)
+        #     print('body: ', body)
+        #     command = body.get('command', '')
+        #     if command == 'request_upload':
+        #         time1 = time.time()
+        #         request_upload(client, device_id, topic)
+        #         time2 = time.time()
+        #         print('TIME 后端生成 oss link 时间: ', time2 - time1)
+        #     elif command == 'notify_upload':
+        #         print('notify_upload')
+        #         if 'voice_id' not in body:
+        #             print('voice_id not found')
+        #             return
+        #         voice_id = body.get('voice_id', '')
+        #         time1 = time.time()
+        #         process_nlp(client, device_id, topic, device.user_id, voice_id)
+        #         time2 = time.time()
+        #         print('TIME 生成 NLP 参数 + NLP 整个返回时间: ', time2 - time1)
+        #         # TODO nofiy upload to NLP server
 
-            elif command == 'request_update':
-                print('request_update')
+        #     elif command == 'request_update':
+        #         print('request_update')
 
-            elif command == 'online':
-                print('device online, device_id: ', device_id)
-                send_msg(client, device_id, topic, 'you are online')
-            elif command == 'lost':
-                print('device offline, device_id: ', device_id)
-                send_msg(client, device_id, topic, 'you are lost')
+        #     elif command == 'online':
+        #         print('device online, device_id: ', device_id)
+        #         send_msg(client, device_id, topic, 'you are online')
+        #     elif command == 'lost':
+        #         print('device offline, device_id: ', device_id)
+        #         send_msg(client, device_id, topic, 'you are lost')
 
-        except Exception as e:
-            print('error: ', e)
+        # except Exception as e:
+        #     print('error: ', e)
 
     # 客户端从服务器获取数据
     elif method == 'get':
+        # print('mqmqmq data = ', msgpack.unpackb(msg.payload))
         pass
 
     try:

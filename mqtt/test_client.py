@@ -83,7 +83,7 @@ client_id='GID_TOAI@@@server_test'
 brokerUrl="post-cn-lsk3uo7yv02.mqtt.aliyuncs.com"
 
 def send_to_client():
-    device_id = '00004674224'
+    device_id = '321123'
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id, protocol=mqtt.MQTTv311, clean_session=True)
 
     userName = 'Signature|LTAI5tLQxLqhF7ywAw797nwj|post-cn-lsk3uo7yv02'
