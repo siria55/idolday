@@ -66,7 +66,7 @@ def http_exception_handler(request, exc):
 
 app.include_router(api_router, prefix="/api/v1")
 
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # scheduler = AsyncIOScheduler()
 # gen_voice_token()
