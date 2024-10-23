@@ -4,12 +4,10 @@ import re
 import os
 import json
 import requests
-from typing import Optional
 
 from pydantic import BaseModel
-from fastapi import Header, Depends, Form, Cookie
+from fastapi import Form
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import HTTPException
 
 from database import get_db
 
