@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 
 from database import get_db
-from models.user import User
 
 from tencentcloud.common.common_client import CommonClient
 from tencentcloud.common import credential
@@ -156,25 +155,25 @@ def captcha_geetest(params):
 
 
 
-def get_current_user(Authorization: str = Header(None), token: Optional[str] = Cookie(None), db = Depends(get_db)) -> User:
-    print('tokentoken = ', token)
-    if Authorization and Authorization.startswith("Bearer "):
-        res_token = Authorization.split(" ")[1]
-    elif token:
-        res_token = token
-    else:
-        raise HTTPException(status_code=401)
+# def get_current_user(Authorization: str = Header(None), token: Optional[str] = Cookie(None), db = Depends(get_db)) -> User:
+#     print('tokentoken = ', token)
+#     if Authorization and Authorization.startswith("Bearer "):
+#         res_token = Authorization.split(" ")[1]
+#     elif token:
+#         res_token = token
+#     else:
+#         raise HTTPException(status_code=401)
 
-    try:
-        user_id = decode_token(res_token)
-        print('user_id = ', user_id)
-        user = User.get(db, id=user_id)
-        print('user = ', user)
-    except Exception as e:
-        raise HTTPException(status_code=401)
-    if not user:
-        raise HTTPException(status_code=401)
-    return user
+#     try:
+#         user_id = decode_token(res_token)
+#         print('user_id = ', user_id)
+#         user = User.get(db, id=user_id)
+#         print('user = ', user)
+#     except Exception as e:
+#         raise HTTPException(status_code=401)
+#     if not user:
+#         raise HTTPException(status_code=401)
+#     return user
 
 
 def gen_token(user_id):
