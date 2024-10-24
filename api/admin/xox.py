@@ -1,5 +1,6 @@
 
 from pydantic import BaseModel
+from typing import OrderedDict
 from fastapi import APIRouter
 
 from api import  res_json, res_err, ERRCODES
@@ -7,6 +8,32 @@ from api import  res_json, res_err, ERRCODES
 from models.xox import Xox, XoxGroup, ManagementCompany
 
 router = APIRouter()
+
+EXPOSTED_TABLES = OrderedDict({
+    'xox': Xox,
+    'xox_group': XoxGroup,
+    'management_company': ManagementCompany,
+})
+
+@router.get('/admin/data/tables')
+def data_tables():
+    """
+    获取数据表
+    """
+    data = {
+        'table_names': list(EXPOSTED_TABLES.keys()),
+    }
+    return res_json(data)
+
+@router.get('/admin/data/tables/{table_name}')
+def data_table(table_name: str):
+    """
+    获取数据表
+    """
+    if table_name not in EXPOSTED_TABLES:
+        return res_err(ERRCODES.PARAMS_ERROR, f'{table_name} not found')
+    target_model = EXPOSTED_TABLES[table_name]
+    return res_json(target_model.preview_data())
 
 class ReqXoxs(BaseModel):
     name: str

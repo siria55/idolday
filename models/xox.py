@@ -31,6 +31,14 @@ class Xox(Base):
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
 
+    @classmethod
+    def preview_data(cls):
+        headers = ['id', 'name', 'group_id', 'group_name', 'management_company_id', 'management_company_name', 'created_at']
+        return {
+            'headers': headers,
+            'rows': [x.to_dict for x in cls.gets()],
+        }
+
 
 class XoxGroup(Base):
     __tablename__ = 'xox_group'
@@ -63,6 +71,14 @@ class XoxGroup(Base):
         xoxs = Session().scalars(select(Xox).filter_by(group_id=self.id)).all()
         return xoxs
 
+    @classmethod
+    def preview_data(cls):
+        headers = ['id', 'name', 'management_company_id', 'management_company_name', 'created_at']
+        return {
+            'headers': headers,
+            'rows': [x.to_dict for x in cls.gets()],
+        }
+
 
 class ManagementCompany(Base):
     __tablename__ = 'management_company'
@@ -93,3 +109,11 @@ class ManagementCompany(Base):
         for group in self.groups:
             xoxs += group.xoxs
         return xoxs
+
+    @classmethod
+    def preview_data(cls):
+        headers = ['id', 'name', 'created_at']
+        return {
+            'headers': headers,
+            'rows': [x.to_dict for x in cls.gets()],
+        }
