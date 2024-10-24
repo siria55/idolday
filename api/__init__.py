@@ -183,10 +183,10 @@ def decode_token(token):
     return jwt.decode(token, "secret", algorithms=["HS256"]).get('user_id')
 
 
-def res_err(err_codes):
+def res_err(err_codes, msg=''):
     res = {
         'code': err_codes.get('code', 0),
-        'message': err_codes.get('message', 'success'),
+        'message': msg or err_codes.get('message', 'success'),
         'data': {}
     }
     return JSONResponse(status_code=200, content=res)

@@ -1,15 +1,9 @@
 
-from fastapi import APIRouter, Depends, Request
-from pydantic import field_validator, BaseModel
-from typing import Optional
+from fastapi import APIRouter
 
-from database import get_db
-from api import gen_token, captcha_verify_tsec, res_err, res_json, ERRCODES, is_valid_email, BareRes, is_valid_password, COOKIE_SECURE
+from api import  res_json
 
 from models.xox import Xox, XoxGroup, ManagementCompany
-from aliyun_services.sms import send_sms, generate_verification_code
-from aliyun_services.email import send_email
-from memcached import mc
 
 router = APIRouter()
 

@@ -10,60 +10,6 @@
   "UNKNOWN_ERROR": {
     "code": 1000,
     "message": "其他错误"
-  },
-
-  "AUTH_ERROR": {
-    "code": 10000,
-    "message": "认证失败，请重新登录"
-  },
-  "USER_NOT_FOUND": {
-    "code": 10001,
-    "message": "操作失败，请检查手机/邮箱是否正确"
-  },
-  "USER_LOGIN_ERROR": {
-    "code": 10002,
-    "message": "登录失败，请检查用户名和密码"
-  },
-  "CAPTCHA_ERROR": {
-    "code": 10003,
-    "message": "captcha 验证失败"
-  },
-  "EMAIL_VERIFY_CODE_ERROR": {
-    "code": 10004,
-    "message": "邮箱验证码错误"
-  },
-  "PHONE_VERIFY_CODE_ERROR": {
-    "code": 10005,
-    "message": "手机验证码错误"
-  },
-  "PHONE_ALREADY_EXISTS": {
-    "code": 10006,
-    "message": "手机号已存在"
-  },
-  "EMAIL_ALREADY_EXISTS": {
-    "code": 10007,
-    "message": "邮箱已存在"
-  },
-  "USERNAME_ALREADY_EXISTS": {
-    "code": 10008,
-    "message": "用户名已存在"
-  },
-
-  "DEVICE_ALREADY_EXISTS": {
-    "code": 20003,
-    "message": "设备已存在"
-  },
-  "DEVICE_NOT_FOUND": {
-    "code": 20004,
-    "message": "设备不存在"
-  },
-  "NO_AUTH_TO_DEVICE": {
-    "code": 20005,
-    "message": "对设备无权限"
-  },
-  "DEVICE_TOKEN_ERROR": {
-    "code": 20006,
-    "message": "设备 token 错误"
   }
 
 }
